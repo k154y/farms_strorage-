@@ -1,0 +1,13 @@
+package com.agristorage.enums;
+
+public enum NotificationType {
+    ACCOUNT_APPROVED,
+    ACCOUNT_REJECTED,
+    DOCUMENT_REJECTED,
+    BOOKING_APPROVED,
+    BOOKING_REJECTED,
+    TRANSPORT_ASSIGNED,
+    TRANSPORT_COMPLETED,
+    ORDER_REQUEST_RECEIVED,
+    GENERAL
+}
