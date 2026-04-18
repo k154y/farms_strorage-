@@ -2,6 +2,7 @@ package com.agristorage.controller.storage;
 
 import com.agristorage.dto.request.CreateProduceCategoryRequest;
 import com.agristorage.dto.request.UpdateProduceCategoryRequest;
+import com.agristorage.dto.response.ApiResponse;
 import com.agristorage.entity.storage.ProduceCategory;
 import com.agristorage.service.storage.ProduceCategoryService;
 import jakarta.validation.Valid;
@@ -18,29 +19,33 @@ public class ProduceCategoryController {
     private final ProduceCategoryService produceCategoryService;
 
     @PostMapping
-    public ProduceCategory createCategory(@Valid @RequestBody CreateProduceCategoryRequest request) {
-        return produceCategoryService.createCategory(request);
+    public ApiResponse<ProduceCategory> createCategory(@Valid @RequestBody CreateProduceCategoryRequest request) {
+        return new ApiResponse<>(true, "Produce category created successfully",
+                produceCategoryService.createCategory(request));
     }
 
     @GetMapping
-    public List<ProduceCategory> getAllCategories() {
-        return produceCategoryService.getAllCategories();
+    public ApiResponse<List<ProduceCategory>> getAllCategories() {
+        return new ApiResponse<>(true, "Produce categories fetched successfully",
+                produceCategoryService.getAllCategories());
     }
 
     @GetMapping("/{id}")
-    public ProduceCategory getCategoryById(@PathVariable Long id) {
-        return produceCategoryService.getCategoryById(id);
+    public ApiResponse<ProduceCategory> getCategoryById(@PathVariable Long id) {
+        return new ApiResponse<>(true, "Produce category fetched successfully",
+                produceCategoryService.getCategoryById(id));
     }
 
     @PutMapping("/{id}")
-    public ProduceCategory updateCategory(@PathVariable Long id,
-                                          @Valid @RequestBody UpdateProduceCategoryRequest request) {
-        return produceCategoryService.updateCategory(id, request);
+    public ApiResponse<ProduceCategory> updateCategory(@PathVariable Long id,
+                                                       @Valid @RequestBody UpdateProduceCategoryRequest request) {
+        return new ApiResponse<>(true, "Produce category updated successfully",
+                produceCategoryService.updateCategory(id, request));
     }
 
     @DeleteMapping("/{id}")
-    public String deleteCategory(@PathVariable Long id) {
+    public ApiResponse<String> deleteCategory(@PathVariable Long id) {
         produceCategoryService.deleteCategory(id);
-        return "Produce category deleted successfully";
+        return new ApiResponse<>(true, "Produce category deleted successfully", null);
     }
 }

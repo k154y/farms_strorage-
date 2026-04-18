@@ -3,6 +3,8 @@ package com.agristorage.service.storage;
 import com.agristorage.dto.request.CreateProduceCategoryRequest;
 import com.agristorage.dto.request.UpdateProduceCategoryRequest;
 import com.agristorage.entity.storage.ProduceCategory;
+import com.agristorage.exception.ConflictException;
+import com.agristorage.exception.ResourceNotFoundException;
 import com.agristorage.repository.storage.ProduceCategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,7 +19,7 @@ public class ProduceCategoryService {
 
     public ProduceCategory createCategory(CreateProduceCategoryRequest request) {
         produceCategoryRepository.findByName(request.getName()).ifPresent(category -> {
-            throw new RuntimeException("Produce category with this name already exists");
+            throw new ConflictException("Produce category with this name already exists");
         });
 
         ProduceCategory category = ProduceCategory.builder()
@@ -37,7 +39,7 @@ public class ProduceCategoryService {
 
     public ProduceCategory getCategoryById(Long id) {
         return produceCategoryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Produce category not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Produce category not found with id: " + id));
     }
 
     public ProduceCategory updateCategory(Long id, UpdateProduceCategoryRequest request) {
