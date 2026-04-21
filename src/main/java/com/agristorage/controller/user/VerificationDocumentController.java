@@ -2,6 +2,7 @@ package com.agristorage.controller.user;
 
 import com.agristorage.entity.user.VerificationDocument;
 import com.agristorage.enums.DocumentType;
+import com.agristorage.enums.VerificationStatus;
 import com.agristorage.service.user.VerificationDocumentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -23,17 +24,20 @@ public class VerificationDocumentController {
     public VerificationDocument uploadDocument(@RequestParam MultipartFile file,
                                                @RequestParam DocumentType type,
                                                @AuthenticationPrincipal UserDetails userDetails) throws IOException {
-        Long userId = getUserId(userDetails);
+        Long userId = documentService.getUserIdByEmail(userDetails.getUsername());
         return documentService.uploadDocument(file, userId, type);
     }
 
     @GetMapping("/my")
-    public List<VerificationDocument> getMyDocuments(@AuthenticationPrincipal UserDetails userDetails) {
-        Long userId = getUserId(userDetails);
+    public List<VerificationDocument> getUserDocuments(@AuthenticationPrincipal UserDetails userDetails) {
+        Long userId = documentService.getUserIdByEmail(userDetails.getUsername());
         return documentService.getUserDocuments(userId);
     }
 
-    private Long getUserId(UserDetails userDetails) {
-        return documentService.getUserIdByEmail(userDetails.getUsername());
+    @PatchMapping("/{docId}/review")
+    public VerificationDocument reviewDocument(@PathVariable Long docId,
+                                               @RequestParam VerificationStatus status,
+                                               @RequestParam(required = false) String comment) {
+        return documentService.reviewDocument(docId, status, comment);
     }
 }

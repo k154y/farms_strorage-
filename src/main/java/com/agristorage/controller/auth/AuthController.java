@@ -24,7 +24,7 @@ public class AuthController {
         return new MessageResponse("Farmer registered");
     }
 
-    @PostMapping("/register/manager")
+    @PostMapping("/register/storage-manager")
     public MessageResponse registerManager(@Valid @RequestBody RegisterManagerRequest request) {
         authService.registerManager(request);
         return new MessageResponse("Manager pending approval");
