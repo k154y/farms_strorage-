@@ -1,4 +1,4 @@
-import { isAuthenticated } from "../../utils/auth";
+import { isAuthenticated } from "../../utilis/auth";
 import { Navigate } from "react-router-dom";
 
 export default function BookStoragePage() {

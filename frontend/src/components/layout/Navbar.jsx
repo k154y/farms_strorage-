@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Bell, User } from "lucide-react";
-import { isAuthenticated } from "../../utils/auth";
+import { isAuthenticated } from "../../utilis/auth";
 
 export default function PublicNavbar() {
   const navigate = useNavigate();

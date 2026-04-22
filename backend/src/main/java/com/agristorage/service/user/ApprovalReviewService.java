@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -63,5 +64,13 @@ public class ApprovalReviewService {
     public Long getUserIdByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found")).getId();
+    }
+
+    public List<User> getPendingUsers() {
+        return userRepository.findByStatus(UserStatus.PENDING_APPROVAL);
+    }
+
+    public List<ApprovalReview> getApprovalHistory(Long userId) {
+        return reviewRepository.findByReviewedUserId(userId);
     }
 }

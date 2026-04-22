@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { isAuthenticated } from "../utils/auth";
+import { isAuthenticated } from "../utilis/auth";
 import ProductCard from "../components/marketplace/ProductCard";
 
 const sampleProducts = [

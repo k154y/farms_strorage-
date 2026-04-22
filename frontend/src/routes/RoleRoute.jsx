@@ -1,5 +1,5 @@
 import { Navigate, Outlet } from "react-router-dom";
-import { getUser } from "../utils/auth";
+import { getUser } from "../utilis/auth";
 
 export default function RoleRoute({ allowedRoles }) {
   const user = getUser();

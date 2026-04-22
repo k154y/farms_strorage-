@@ -1,5 +1,5 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
-import { isAuthenticated } from "../utils/auth";
+import { isAuthenticated } from "../utilis/auth";
 
 export default function ProtectedRoute() {
   const location = useLocation();

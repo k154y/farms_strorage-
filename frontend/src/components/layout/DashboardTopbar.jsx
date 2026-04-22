@@ -1,5 +1,5 @@
 import { Bell } from "lucide-react";
-import { getUser } from "../../utils/auth";
+import { getUser } from "../../utilis/auth";
 
 export default function DashboardTopbar({ title, subtitle }) {
   const user = getUser();

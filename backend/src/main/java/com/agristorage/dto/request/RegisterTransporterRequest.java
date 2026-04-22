@@ -1,0 +1,33 @@
+package com.agristorage.dto.request;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+public class RegisterTransporterRequest {
+
+    @NotBlank(message = "Full name is required")
+    private String fullName;
+
+    @Email(message = "Valid email is required")
+    @NotBlank(message = "Email is required")
+    private String email;
+
+    @NotBlank(message = "Phone number is required")
+    private String phoneNumber;
+
+    @NotBlank(message = "Password is required")
+    private String password;
+
+    private String businessName;
+    private String drivingLicenseNumber;
+    private String ruraCertificateId;
+    private String commercialInsurance;
+    private String ownershipDetails;
+    private String district;
+    private String sector;
+    private String contactPhone;
+}

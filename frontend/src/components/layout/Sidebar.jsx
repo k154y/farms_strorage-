@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { getUser, logout } from "../../utils/auth";
+import { getUser, logout } from "../../utilis/auth";
 
 const menus = {
   FARMER: [

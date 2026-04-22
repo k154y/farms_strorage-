@@ -40,6 +40,14 @@ public class VerificationDocumentService {
         return documentRepository.findByUserId(userId);
     }
 
+    public VerificationDocument uploadDocument(MultipartFile file, Long userId, DocumentType type) throws IOException {
+        return saveDocumentMetadata(file, userId, type);
+    }
+
+    public List<VerificationDocument> getUserDocuments(Long userId) {
+        return listUserDocuments(userId);
+    }
+
     // Review document status (approve/reject)
     public VerificationDocument reviewDocumentStatus(Long docId, VerificationStatus status, String comment) {
         VerificationDocument doc = documentRepository.findById(docId)
@@ -53,5 +61,9 @@ public class VerificationDocumentService {
     public Long getUserIdByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found")).getId();
+    }
+
+    public VerificationDocument reviewDocument(Long docId, VerificationStatus status, String comment) {
+        return reviewDocumentStatus(docId, status, comment);
     }
 }

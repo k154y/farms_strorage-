@@ -104,9 +104,16 @@ public class AuthService {
             new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        String token = tokenProvider.generateToken(authentication);
+        String token = tokenProvider.generateToken(authentication.getName());
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        return new JwtResponse(token, "Bearer", user.getId(), user.getEmail(), user.getRole().name());
+        return new JwtResponse(
+                token,
+                "Bearer",
+                user.getId(),
+                user.getFullName(),
+                user.getEmail(),
+                user.getRole().name()
+        );
     }
 }
