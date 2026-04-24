@@ -17,8 +17,21 @@ public class NotificationController {
     private final NotificationService notificationService;
 
     @GetMapping
-    public List<Notification> getMyNotifications(@AuthenticationPrincipal UserDetails userDetails) {
-        Long userId = getUserId(userDetails);
+    public List<Notification> getMyNotifications(@RequestParam(required = false) Long userId,
+                                                 @AuthenticationPrincipal UserDetails userDetails) {
+        Long resolvedUserId = getUserId(userDetails, userId);
+        return notificationService.getUserNotifications(resolvedUserId);
+    }
+
+    @GetMapping("/my")
+    public List<Notification> getMyNotificationsAlias(@RequestParam(required = false) Long userId,
+                                                      @AuthenticationPrincipal UserDetails userDetails) {
+        Long resolvedUserId = getUserId(userDetails, userId);
+        return notificationService.getUserNotifications(resolvedUserId);
+    }
+
+    @GetMapping("/user/{userId}")
+    public List<Notification> getNotificationsByUser(@PathVariable Long userId) {
         return notificationService.getUserNotifications(userId);
     }
 
@@ -27,7 +40,13 @@ public class NotificationController {
         notificationService.markAsRead(id);
     }
 
-    private Long getUserId(UserDetails userDetails) {
-        return notificationService.getUserIdByEmail(userDetails.getUsername());
+    private Long getUserId(UserDetails userDetails, Long fallbackUserId) {
+        if (userDetails != null) {
+            return notificationService.getUserIdByEmail(userDetails.getUsername());
+        }
+        if (fallbackUserId != null) {
+            return fallbackUserId;
+        }
+        throw new RuntimeException("User identity is required");
     }
 }

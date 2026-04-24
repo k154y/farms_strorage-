@@ -8,6 +8,8 @@ import com.agristorage.dto.response.JwtResponse;
 import com.agristorage.entity.user.*;
 import com.agristorage.enums.Role;
 import com.agristorage.enums.UserStatus;
+import com.agristorage.service.common.AuditLogService;
+import com.agristorage.service.user.NotificationService;
 import com.agristorage.repository.user.*;
 import com.agristorage.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +32,8 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider tokenProvider;
+    private final NotificationService notificationService;
+    private final AuditLogService auditLogService;
 
     @Transactional
     public void registerFarmer(RegisterFarmerRequest request) {
@@ -46,6 +50,8 @@ public class AuthService {
         FarmerProfile profile = new FarmerProfile();
         profile.setUser(user);
         farmerProfileRepository.save(profile);
+
+        auditLogService.log(user.getId(), "REGISTERED", "USER", user.getId(), "Farmer account created");
     }
 
     @Transactional
@@ -57,7 +63,7 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(Role.STORAGE_MANAGER);
         user.setStatus(UserStatus.PENDING_APPROVAL);
-        user.setEnabled(false);
+        user.setEnabled(true);
         userRepository.save(user);
 
         StorageManagerProfile profile = new StorageManagerProfile();
@@ -72,6 +78,13 @@ public class AuthService {
         profile.setSector(request.getSector());
         profile.setContactPhone(request.getContactPhone());
         storageManagerProfileRepository.save(profile);
+
+        notificationService.notifyAdmins(
+                "New Storage Account",
+                user.getFullName() + " created a storage owner account and is awaiting review.",
+                "GENERAL"
+        );
+        auditLogService.log(user.getId(), "REGISTERED", "USER", user.getId(), "Storage manager account created");
     }
 
     @Transactional
@@ -83,7 +96,7 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(Role.TRANSPORTER);
         user.setStatus(UserStatus.PENDING_APPROVAL);
-        user.setEnabled(false);
+        user.setEnabled(true);
         userRepository.save(user);
 
         TransporterProfile profile = new TransporterProfile();
@@ -97,6 +110,13 @@ public class AuthService {
         profile.setSector(request.getSector());
         profile.setContactPhone(request.getContactPhone());
         transporterProfileRepository.save(profile);
+
+        notificationService.notifyAdmins(
+                "New Transporter Account",
+                user.getFullName() + " created a transporter account and is awaiting review.",
+                "GENERAL"
+        );
+        auditLogService.log(user.getId(), "REGISTERED", "USER", user.getId(), "Transporter account created");
     }
 
     public JwtResponse login(LoginRequest request) {
@@ -113,7 +133,8 @@ public class AuthService {
                 user.getId(),
                 user.getFullName(),
                 user.getEmail(),
-                user.getRole().name()
+                user.getRole().name(),
+                user.getStatus().name()
         );
     }
 }

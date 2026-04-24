@@ -1,13 +1,19 @@
+import { useEffect, useState } from "react";
 import ProductCard from "../../components/marketplace/ProductCard";
-
-const products = [
-  { id: 1, name: "Fresh Tomatoes", price: 400, quantityAvailable: 500, location: "Kigali" },
-  { id: 2, name: "Green Apples", price: 1200, quantityAvailable: 300, location: "Musanze" },
-  { id: 3, name: "Fresh Potatoes", price: 250, quantityAvailable: 1000, location: "Burera" },
-  { id: 4, name: "Organic Carrots", price: 600, quantityAvailable: 200, location: "Huye" },
-];
+import { getListings } from "../../services/marketplaceService";
 
 export default function MarketplacePage() {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    getListings()
+      .then((data) => setProducts(Array.isArray(data) ? data : data?.data || []))
+      .catch((err) => setError(err?.response?.data?.message || err?.message || "Failed to load listings"))
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
     <div className="mx-auto max-w-7xl px-6 py-12">
       <h1 className="text-4xl font-bold text-slate-900">Marketplace</h1>
@@ -25,11 +31,16 @@ export default function MarketplacePage() {
         </div>
       </div>
 
-      <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-        {products.map((product) => (
-          <ProductCard key={product.id} product={product} />
-        ))}
-      </div>
+      {loading ? <p className="mt-10 text-slate-500">Loading listings...</p> : null}
+      {error ? <div className="mt-10 rounded-xl bg-red-50 px-4 py-3 text-red-700">{error}</div> : null}
+
+      {!loading && !error ? (
+        <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+          {products.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }

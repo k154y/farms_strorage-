@@ -17,9 +17,9 @@ export default function PublicNavbar() {
 
         <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-700">
           <Link to="/marketplace" className="hover:text-[#47A369]">Marketplace</Link>
-          <button onClick={handleFindStorage} className="hover:text-[#47A369]">Find Storage</button>
+          <Link to="/login"className="hover:text-[#47A369]">Find Storage</Link>
           <Link to="/how-it-works" className="hover:text-[#47A369]">How It Works</Link>
-          <Link to="/register-storage" className="hover:text-[#47A369]">Register Storage</Link>
+          
         </nav>
 
         <div className="flex items-center gap-4">

@@ -18,9 +18,12 @@ public class StorageManagerProfileController {
 
     @PostMapping
     public StorageManagerProfile createOrUpdateProfile(@AuthenticationPrincipal UserDetails userDetails,
+                                                       @RequestParam(required = false) Long userId,
                                                        @RequestBody StorageManagerProfile profile) {
-        Long userId = userRepository.findByEmail(userDetails.getUsername()).orElseThrow().getId();
-        profile.setUser(userRepository.findById(userId).orElseThrow());
+        Long resolvedUserId = userDetails != null
+                ? userRepository.findByEmail(userDetails.getUsername()).orElseThrow().getId()
+                : userId;
+        profile.setUser(userRepository.findById(resolvedUserId).orElseThrow());
         return profileRepository.save(profile);
     }
 }

@@ -23,15 +23,22 @@ public class VerificationDocumentController {
     @PostMapping("/upload")
     public VerificationDocument uploadDocument(@RequestParam MultipartFile file,
                                                @RequestParam DocumentType type,
+                                               @RequestParam(required = false) Long userId,
                                                @AuthenticationPrincipal UserDetails userDetails) throws IOException {
-        Long userId = documentService.getUserIdByEmail(userDetails.getUsername());
-        return documentService.uploadDocument(file, userId, type);
+        Long resolvedUserId = resolveUserId(userDetails, userId);
+        return documentService.uploadDocument(file, resolvedUserId, type);
     }
 
     @GetMapping("/my")
-    public List<VerificationDocument> getUserDocuments(@AuthenticationPrincipal UserDetails userDetails) {
-        Long userId = documentService.getUserIdByEmail(userDetails.getUsername());
-        return documentService.getUserDocuments(userId);
+    public List<VerificationDocument> getUserDocuments(@RequestParam(required = false) Long userId,
+                                                       @AuthenticationPrincipal UserDetails userDetails) {
+        Long resolvedUserId = resolveUserId(userDetails, userId);
+        return documentService.getUserDocuments(resolvedUserId);
+    }
+
+    @GetMapping
+    public List<VerificationDocument> getAllDocuments() {
+        return documentService.getAllDocuments();
     }
 
     @PatchMapping("/{docId}/review")
@@ -39,5 +46,15 @@ public class VerificationDocumentController {
                                                @RequestParam VerificationStatus status,
                                                @RequestParam(required = false) String comment) {
         return documentService.reviewDocument(docId, status, comment);
+    }
+
+    private Long resolveUserId(UserDetails userDetails, Long fallbackUserId) {
+        if (userDetails != null) {
+            return documentService.getUserIdByEmail(userDetails.getUsername());
+        }
+        if (fallbackUserId != null) {
+            return fallbackUserId;
+        }
+        throw new RuntimeException("User identity is required");
     }
 }

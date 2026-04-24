@@ -4,6 +4,7 @@ import com.agristorage.entity.user.User;
 import com.agristorage.enums.Role;
 import com.agristorage.enums.UserStatus;
 import com.agristorage.repository.user.UserRepository;
+import com.agristorage.service.common.AuditLogService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,11 +16,23 @@ import java.util.List;
 public class UserController {
 
     private final UserRepository userRepository;
+    private final AuditLogService auditLogService;
 
     @GetMapping
-    public List<User> getAllUsers(@RequestParam(required = false) String role) {
+    public List<User> getAllUsers(@RequestParam(required = false) String role,
+                                  @RequestParam(required = false) String status) {
+        if (role != null && status != null) {
+            Role parsedRole = Role.valueOf(role.toUpperCase());
+            UserStatus parsedStatus = UserStatus.valueOf(status.toUpperCase());
+            return userRepository.findAll().stream()
+                    .filter(user -> user.getRole() == parsedRole && user.getStatus() == parsedStatus)
+                    .toList();
+        }
         if (role != null) {
             return userRepository.findByRole(Role.valueOf(role.toUpperCase()));
+        }
+        if (status != null) {
+            return userRepository.findByStatus(UserStatus.valueOf(status.toUpperCase()));
         }
         return userRepository.findAll();
     }
@@ -46,7 +59,9 @@ public class UserController {
         } else if (status == UserStatus.SUSPENDED || status == UserStatus.REJECTED) {
             user.setEnabled(false);
         }
-        return userRepository.save(user);
+        User saved = userRepository.save(user);
+        auditLogService.log(saved.getId(), "USER_STATUS_UPDATED", "USER", saved.getId(), "Status changed to " + status.name());
+        return saved;
     }
 
     @PatchMapping("/{id}/enable")
@@ -57,6 +72,8 @@ public class UserController {
         if (enabled && user.getStatus() != UserStatus.ACTIVE) {
             user.setStatus(UserStatus.ACTIVE);
         }
-        return userRepository.save(user);
+        User saved = userRepository.save(user);
+        auditLogService.log(saved.getId(), "USER_ENABLED_UPDATED", "USER", saved.getId(), "Enabled set to " + enabled);
+        return saved;
     }
 }

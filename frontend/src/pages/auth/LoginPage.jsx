@@ -1,23 +1,58 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { loginUser } from "../../services/authService";
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [form, setForm] = useState({ email: "", password: "" });
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const routeByRole = (role) => {
+    switch (role) {
+      case "STORAGE_MANAGER":
+        return "/storage/dashboard";
+      case "TRANSPORTER":
+        return "/transport/dashboard";
+      case "ADMIN":
+        return "/admin/dashboard";
+      default:
+        return "/farmer/dashboard";
+    }
+  };
 
-    const fakeUser = {
-      fullName: "Demo User",
-      role: "FARMER",
-      email: form.email,
-    };
+  const getPostLoginPath = (user) => {
+    if (user.role === "STORAGE_MANAGER" && user.status !== "ACTIVE") return "/storage/profile";
+    if (user.role === "TRANSPORTER" && user.status !== "ACTIVE") return "/transport/profile";
+    return routeByRole(user.role);
+  };
 
-    localStorage.setItem("token", "demo-token");
-    localStorage.setItem("user", JSON.stringify(fakeUser));
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setSubmitting(true);
+    setError("");
 
-    navigate("/farmer/dashboard");
+    try {
+      const data = await loginUser(form);
+      const user = {
+        id: data.id,
+        fullName: data.fullName,
+        email: data.email,
+        role: data.role,
+        status: data.status,
+      };
+
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(user));
+
+      const nextPath = location.state?.from?.pathname || getPostLoginPath(user);
+      navigate(nextPath, { replace: true });
+    } catch (err) {
+      setError(err?.response?.data?.message || err?.message || "Login failed");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -54,7 +89,7 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
           <h2 className="text-4xl font-bold text-slate-900">Login</h2>
           <p className="mt-3 text-slate-500">
-            Enter your credentials to access your account.
+            Enter your credentials to access your account. Storage owners and transporters will complete documents in profile before admin approval.
           </p>
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-5">
@@ -64,6 +99,7 @@ export default function LoginPage() {
               className="w-full rounded-xl border border-slate-300 px-4 py-3"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
+              required
             />
             <input
               type="password"
@@ -71,10 +107,20 @@ export default function LoginPage() {
               className="w-full rounded-xl border border-slate-300 px-4 py-3"
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
+              required
             />
 
-            <button className="w-full rounded-xl bg-[#304F3A] px-6 py-3 font-semibold text-white hover:bg-[#47A369]">
-              Harvest Access
+            {error && (
+              <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+                {error}
+              </div>
+            )}
+
+            <button
+              disabled={submitting}
+              className="w-full rounded-xl bg-[#304F3A] px-6 py-3 font-semibold text-white hover:bg-[#47A369] disabled:opacity-70"
+            >
+              {submitting ? "Signing In..." : "Harvest Access"}
             </button>
           </form>
 

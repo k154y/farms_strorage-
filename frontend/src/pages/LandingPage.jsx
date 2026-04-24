@@ -2,12 +2,12 @@ import { Link, useNavigate } from "react-router-dom";
 import { isAuthenticated } from "../utilis/auth";
 import ProductCard from "../components/marketplace/ProductCard";
 
-const sampleProducts = [
-  { id: 1, name: "Fresh Tomatoes", price: 400, quantityAvailable: 500, location: "Kigali" },
-  { id: 2, name: "Green Apples", price: 1200, quantityAvailable: 300, location: "Musanze" },
-  { id: 3, name: "Fresh Potatoes", price: 250, quantityAvailable: 1000, location: "Burera" },
-  { id: 4, name: "Organic Carrots", price: 600, quantityAvailable: 200, location: "Huye" },
-];
+// const sampleProducts = [
+//   { id: 1, name: "Fresh Tomatoes", price: 400, quantityAvailable: 500, location: "Kigali" },
+//   { id: 2, name: "Green Apples", price: 1200, quantityAvailable: 300, location: "Musanze" },
+//   { id: 3, name: "Fresh Potatoes", price: 250, quantityAvailable: 1000, location: "Burera" },
+//   { id: 4, name: "Organic Carrots", price: 600, quantityAvailable: 200, location: "Huye" },
+// ];
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -55,17 +55,17 @@ export default function LandingPage() {
                 Find Storage
               </button>
               <Link
-                to="/register-storage"
+                to="/register"
                 className="rounded-xl border border-white px-6 py-3 font-semibold text-white"
               >
-                Register Storage
+                Register 
               </Link>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-6 py-20">
+      {/* <section className="mx-auto max-w-7xl px-6 py-20">
         <div className="mb-8 flex items-end justify-between">
           <div>
             <h2 className="text-4xl font-bold text-slate-900">Fresh From Farms</h2>
@@ -81,7 +81,7 @@ export default function LandingPage() {
             <ProductCard key={product.id} product={product} />
           ))}
         </div>
-      </section>
+      </section> */}
 
       <section id="how-it-works" className="bg-slate-50 py-20">
         <div className="mx-auto max-w-7xl px-6">

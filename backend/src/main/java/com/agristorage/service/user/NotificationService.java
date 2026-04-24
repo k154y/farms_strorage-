@@ -1,7 +1,9 @@
 package com.agristorage.service.user;
 
 import com.agristorage.entity.user.Notification;
+import com.agristorage.entity.user.User;
 import com.agristorage.enums.NotificationType;
+import com.agristorage.enums.Role;
 import com.agristorage.repository.user.NotificationRepository;
 import com.agristorage.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +30,12 @@ public class NotificationService {
         notification.setRead(false);
         notification.setCreatedAt(LocalDateTime.now());
         notificationRepository.save(notification);
+    }
+
+    public void notifyAdmins(String title, String message, String type) {
+        for (User admin : userRepository.findByRole(Role.ADMIN)) {
+            createNotification(admin.getId(), title, message, type);
+        }
     }
 
     // List notifications by user

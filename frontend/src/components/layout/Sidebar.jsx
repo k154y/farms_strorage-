@@ -18,7 +18,6 @@ const menus = {
     { label: "Add Facility", path: "/storage/facilities/create" },
     { label: "Cold Rooms", path: "/storage/cold-rooms" },
     { label: "Booking Requests", path: "/storage/booking-requests" },
-    { label: "Facility Photos", path: "/storage/facility-photos" },
     { label: "Notifications", path: "/storage/notifications" },
     { label: "Profile", path: "/storage/profile" },
   ],
