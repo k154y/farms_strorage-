@@ -35,8 +35,8 @@ export default function AdminVerificationDocumentsPage() {
 
   return (
     <div className="rounded-2xl bg-white p-6 shadow-sm">
-      <h2 className="text-2xl font-bold text-slate-900">Verification Documents</h2>
-      <p className="mt-2 text-slate-500">Admin can see every uploaded document and approve or reject it here.</p>
+      <h2 className="text-2xl font-bold text-slate-900"></h2>
+      <p className="mt-2 text-slate-500">Uploaded document to be reviewed.</p>
       {error && <div className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
 
       <div className="mt-6 space-y-4">

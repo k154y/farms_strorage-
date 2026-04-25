@@ -1,17 +1,25 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import OrderRequestForm from "../../components/marketplace/OrderRequestForm";
-import { createOrderRequest, getListingById } from "../../services/marketplaceService";
+import {
+  createOrderRequest,
+  getListingById,
+  getListingImages,
+} from "../../services/marketplaceService";
 
 export default function ProductDetailsPage() {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
+  const [imageUrl, setImageUrl] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
-    getListingById(id)
-      .then((data) => setProduct(data))
+    Promise.all([getListingById(id), getListingImages(id).catch(() => [])])
+      .then(([data, images]) => {
+        setProduct(data);
+        setImageUrl(images?.[0]?.filePath || data?.imageUrl || "");
+      })
       .catch((err) => setError(err?.response?.data?.message || err?.message || "Failed to load listing"));
   }, [id]);
 
@@ -48,7 +56,7 @@ export default function ProductDetailsPage() {
       <div className="mt-8 grid gap-8 lg:grid-cols-2">
         <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white">
           <img
-            src={product?.imageUrl || "https://images.unsplash.com/photo-1546094096-0df4bcaaa337?q=80&w=1200&auto=format&fit=crop"}
+            src={imageUrl || "https://images.unsplash.com/photo-1546094096-0df4bcaaa337?q=80&w=1200&auto=format&fit=crop"}
             alt={product?.name || "product"}
             className="h-full w-full object-cover"
           />

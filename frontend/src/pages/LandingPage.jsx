@@ -1,6 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
-import { isAuthenticated } from "../utilis/auth";
-import ProductCard from "../components/marketplace/ProductCard";
+import { Link } from "react-router-dom";
 
 // const sampleProducts = [
 //   { id: 1, name: "Fresh Tomatoes", price: 400, quantityAvailable: 500, location: "Kigali" },
@@ -10,16 +8,6 @@ import ProductCard from "../components/marketplace/ProductCard";
 // ];
 
 export default function LandingPage() {
-  const navigate = useNavigate();
-
-  const handleFindStorage = () => {
-    if (!isAuthenticated()) {
-      navigate("/login");
-      return;
-    }
-    navigate("/find-storage");
-  };
-
   return (
     <div>
       <section
@@ -48,12 +36,12 @@ export default function LandingPage() {
               >
                 Browse Products
               </Link>
-              <button
-                onClick={handleFindStorage}
+              <Link
+                to="/find-storage"
                 className="rounded-xl bg-white px-6 py-3 font-semibold text-[#304F3A]"
               >
                 Find Storage
-              </button>
+              </Link>
               <Link
                 to="/register"
                 className="rounded-xl border border-white px-6 py-3 font-semibold text-white"

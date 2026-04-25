@@ -37,6 +37,11 @@ public class OrderRequestController {
         return orderRequestService.getByListingId(listingId);
     }
 
+    @GetMapping("/farmer/{farmerId}")
+    public List<OrderRequest> getByFarmerId(@PathVariable Long farmerId) {
+        return orderRequestService.getByFarmerId(farmerId);
+    }
+
     @PatchMapping("/{id}/status")
     public OrderRequest updateStatus(@PathVariable Long id,
                                      @Valid @RequestBody UpdateOrderRequestStatusRequest request) {

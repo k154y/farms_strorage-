@@ -3,6 +3,7 @@ package com.agristorage.service.marketplace;
 import com.agristorage.dto.request.AddProductImageRequest;
 import com.agristorage.dto.request.CreateProductListingRequest;
 import com.agristorage.dto.request.UpdateProductListingRequest;
+import com.cloudinary.Cloudinary;
 import com.agristorage.entity.booking.Booking;
 import com.agristorage.entity.marketplace.ProductImage;
 import com.agristorage.entity.marketplace.ProductListing;
@@ -17,8 +18,12 @@ import com.agristorage.repository.storage.ProduceCategoryRepository;
 import com.agristorage.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +34,7 @@ public class ProductListingService {
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
     private final ProduceCategoryRepository produceCategoryRepository;
+    private final Cloudinary cloudinary;
 
     public ProductListing createListing(CreateProductListingRequest request) {
         User farmer = userRepository.findById(request.getFarmerId())
@@ -71,7 +77,7 @@ public class ProductListingService {
     }
 
     public List<ProductListing> getAllListings() {
-        return productListingRepository.findAll();
+        return productListingRepository.findByStatus(ListingStatus.ACTIVE);
     }
 
     public ProductListing getListingById(Long id) {
@@ -115,6 +121,26 @@ public class ProductListingService {
                 .productListing(listing)
                 .fileName(request.getFileName())
                 .filePath(request.getFilePath())
+                .build();
+
+        return productImageRepository.save(image);
+    }
+
+    public ProductImage uploadImage(Long listingId, MultipartFile file) throws IOException {
+        ProductListing listing = getListingById(listingId);
+
+        Map<String, Object> uploadOptions = new HashMap<>();
+        uploadOptions.put("folder", "agri-storage-system/product-images");
+        uploadOptions.put("resource_type", "image");
+        uploadOptions.put("public_id", "listing-" + listingId + "-" + System.currentTimeMillis());
+
+        Map<?, ?> uploadResult = cloudinary.uploader().upload(file.getBytes(), uploadOptions);
+        Object secureUrl = uploadResult.get("secure_url");
+
+        ProductImage image = ProductImage.builder()
+                .productListing(listing)
+                .fileName(file.getOriginalFilename())
+                .filePath(secureUrl != null ? secureUrl.toString() : null)
                 .build();
 
         return productImageRepository.save(image);

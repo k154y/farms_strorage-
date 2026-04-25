@@ -3,6 +3,7 @@ package com.agristorage.controller.booking;
 import com.agristorage.dto.request.CreateBookingRequest;
 import com.agristorage.dto.request.UpdateBookingStatusRequest;
 import com.agristorage.entity.booking.Booking;
+import com.agristorage.entity.booking.BookingStatusHistory;
 import com.agristorage.service.booking.BookingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,13 +24,25 @@ public class BookingController {
     }
 
     @GetMapping
-    public List<Booking> getAllBookings() {
+    public List<Booking> getAllBookings(@RequestParam(required = false) Long farmerId,
+                                        @RequestParam(required = false) Long managerId) {
+        if (farmerId != null) {
+            return bookingService.getBookingsByFarmerId(farmerId);
+        }
+        if (managerId != null) {
+            return bookingService.getBookingsByManagerId(managerId);
+        }
         return bookingService.getAllBookings();
     }
 
     @GetMapping("/{id}")
     public Booking getBookingById(@PathVariable Long id) {
         return bookingService.getBookingById(id);
+    }
+
+    @GetMapping("/{id}/history")
+    public List<BookingStatusHistory> getHistory(@PathVariable Long id) {
+        return bookingService.getHistory(id);
     }
 
     @PatchMapping("/{id}/status")

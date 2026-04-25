@@ -49,6 +49,11 @@ public class TransportRequestController {
         return transportRequestService.getByTransporterId(transporterId);
     }
 
+    @GetMapping("/available/transporter/{transporterId}")
+    public List<TransportRequest> getAvailableRequestsForTransporter(@PathVariable Long transporterId) {
+        return transportRequestService.getAvailableRequestsForTransporter(transporterId);
+    }
+
     @PatchMapping("/{id}/assign")
     public TransportRequest assignTransportRequest(@PathVariable Long id,
                                                    @Valid @RequestBody AssignTransportRequest request) {

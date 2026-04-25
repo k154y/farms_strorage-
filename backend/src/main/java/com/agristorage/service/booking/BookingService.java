@@ -16,6 +16,8 @@ import com.agristorage.repository.storage.ColdRoomRepository;
 import com.agristorage.repository.storage.ProduceCategoryRepository;
 import com.agristorage.repository.storage.StorageFacilityRepository;
 import com.agristorage.repository.user.UserRepository;
+import com.agristorage.service.common.AuditLogService;
+import com.agristorage.service.user.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -32,6 +34,8 @@ public class BookingService {
     private final StorageFacilityRepository facilityRepository;
     private final ColdRoomRepository coldRoomRepository;
     private final ProduceCategoryRepository categoryRepository;
+    private final NotificationService notificationService;
+    private final AuditLogService auditLogService;
 
     // CREATE BOOKING
     public Booking createBooking(CreateBookingRequest request) {
@@ -81,10 +85,23 @@ public class BookingService {
         return bookingRepository.findAll();
     }
 
+    public List<Booking> getBookingsByFarmerId(Long farmerId) {
+        return bookingRepository.findByFarmerId(farmerId);
+    }
+
+    public List<Booking> getBookingsByManagerId(Long managerId) {
+        return bookingRepository.findByFacilityManagerId(managerId);
+    }
+
     // GET BY ID
     public Booking getBookingById(Long id) {
         return bookingRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Booking not found"));
+    }
+
+    public List<BookingStatusHistory> getHistory(Long bookingId) {
+        getBookingById(bookingId);
+        return historyRepository.findByBookingId(bookingId);
     }
 
     // UPDATE STATUS
@@ -95,12 +112,24 @@ public class BookingService {
         BookingStatus oldStatus = booking.getStatus();
         BookingStatus newStatus = request.getStatus();
 
+        validateStatusTransition(oldStatus, newStatus);
+
         booking.setStatus(newStatus);
 
         // capacity logic
         if (newStatus == BookingStatus.APPROVED) {
             ColdRoom room = booking.getColdRoom();
+            if (room.getAvailableCapacity() < booking.getQuantity()) {
+                throw new RuntimeException("The selected cold room no longer has enough capacity for this booking");
+            }
             room.setAvailableCapacity(room.getAvailableCapacity() - booking.getQuantity());
+            coldRoomRepository.save(room);
+        }
+
+        if (oldStatus == BookingStatus.APPROVED && newStatus == BookingStatus.CANCELLED) {
+            ColdRoom room = booking.getColdRoom();
+            room.setAvailableCapacity(room.getAvailableCapacity() + booking.getQuantity());
+            coldRoomRepository.save(room);
         }
 
         // history
@@ -112,12 +141,56 @@ public class BookingService {
                 .build();
 
         historyRepository.save(history);
+        Booking saved = bookingRepository.save(booking);
 
-        return bookingRepository.save(booking);
+        notificationService.createNotification(
+                booking.getFarmer().getId(),
+                "Booking Status Updated",
+                "Your booking #" + booking.getId() + " is now " + newStatus.name() + ".",
+                "GENERAL"
+        );
+        auditLogService.log(booking.getFarmer().getId(), "BOOKING_" + newStatus.name(), "BOOKING", booking.getId(), request.getComment());
+
+        return saved;
     }
 
     public void deleteBooking(Long id) {
         Booking booking = getBookingById(id);
         bookingRepository.delete(booking);
+    }
+
+    private void validateStatusTransition(BookingStatus oldStatus, BookingStatus newStatus) {
+        if (oldStatus == newStatus) {
+            return;
+        }
+
+        switch (oldStatus) {
+            case PENDING -> {
+                if (newStatus != BookingStatus.APPROVED
+                        && newStatus != BookingStatus.REJECTED
+                        && newStatus != BookingStatus.CANCELLED) {
+                    throw new RuntimeException("PENDING bookings can only move to APPROVED, REJECTED, or CANCELLED");
+                }
+            }
+            case APPROVED -> {
+                if (newStatus != BookingStatus.DELIVERED
+                        && newStatus != BookingStatus.CANCELLED) {
+                    throw new RuntimeException("APPROVED bookings can only move to DELIVERED or CANCELLED");
+                }
+            }
+            case DELIVERED -> {
+                if (newStatus != BookingStatus.IN_STORAGE) {
+                    throw new RuntimeException("DELIVERED bookings can only move to IN_STORAGE");
+                }
+            }
+            case IN_STORAGE -> {
+                if (newStatus != BookingStatus.COMPLETED) {
+                    throw new RuntimeException("IN_STORAGE bookings can only move to COMPLETED");
+                }
+            }
+            case REJECTED, CANCELLED, COMPLETED ->
+                    throw new RuntimeException(oldStatus.name() + " bookings cannot be changed further");
+            default -> throw new RuntimeException("Unsupported booking status transition");
+        }
     }
 }

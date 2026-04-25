@@ -7,6 +7,8 @@ import com.agristorage.entity.marketplace.ProductListing;
 import com.agristorage.enums.ListingStatus;
 import com.agristorage.enums.OrderRequestStatus;
 import com.agristorage.repository.marketplace.OrderRequestRepository;
+import com.agristorage.service.common.AuditLogService;
+import com.agristorage.service.user.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +20,8 @@ public class OrderRequestService {
 
     private final OrderRequestRepository orderRequestRepository;
     private final ProductListingService productListingService;
+    private final NotificationService notificationService;
+    private final AuditLogService auditLogService;
 
     public OrderRequest createOrderRequest(CreateOrderRequestRequest request) {
         ProductListing listing = productListingService.getListingById(request.getProductListingId());
@@ -41,7 +45,17 @@ public class OrderRequestService {
                 .status(OrderRequestStatus.PENDING)
                 .build();
 
-        return orderRequestRepository.save(orderRequest);
+        OrderRequest saved = orderRequestRepository.save(orderRequest);
+
+        notificationService.createNotification(
+                listing.getFarmer().getId(),
+                "New Order Request",
+                request.getBuyerName() + " submitted an order request for your listing " + listing.getName() + ".",
+                "ORDER_REQUEST_RECEIVED"
+        );
+        auditLogService.log(listing.getFarmer().getId(), "ORDER_REQUEST_CREATED", "ORDER_REQUEST", saved.getId(), "Buyer " + request.getBuyerName());
+
+        return saved;
     }
 
     public List<OrderRequest> getAllOrderRequests() {
@@ -55,6 +69,10 @@ public class OrderRequestService {
 
     public List<OrderRequest> getByListingId(Long listingId) {
         return orderRequestRepository.findByProductListingId(listingId);
+    }
+
+    public List<OrderRequest> getByFarmerId(Long farmerId) {
+        return orderRequestRepository.findByProductListingFarmerId(farmerId);
     }
 
     public OrderRequest updateStatus(Long orderRequestId, UpdateOrderRequestStatusRequest request) {

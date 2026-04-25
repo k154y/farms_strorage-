@@ -9,7 +9,9 @@ import com.agristorage.service.marketplace.ProductListingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -55,6 +57,12 @@ public class ProductListingController {
     public ProductImage addImage(@PathVariable Long listingId,
                                  @Valid @RequestBody AddProductImageRequest request) {
         return productListingService.addImage(listingId, request);
+    }
+
+    @PostMapping("/{listingId}/images/upload")
+    public ProductImage uploadImage(@PathVariable Long listingId,
+                                    @RequestParam MultipartFile file) throws IOException {
+        return productListingService.uploadImage(listingId, file);
     }
 
     @GetMapping("/{listingId}/images")
