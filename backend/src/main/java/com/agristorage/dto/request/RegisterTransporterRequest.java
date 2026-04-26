@@ -1,5 +1,6 @@
 package com.agristorage.dto.request;
 
+import com.agristorage.enums.VehicleType;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
@@ -30,4 +31,7 @@ public class RegisterTransporterRequest {
     private String district;
     private String sector;
     private String contactPhone;
+    private String vehiclePlateNumber;
+    private VehicleType vehicleType;
+    private Double vehicleCapacity;
 }

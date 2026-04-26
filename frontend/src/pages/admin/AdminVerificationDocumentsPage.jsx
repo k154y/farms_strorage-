@@ -5,6 +5,9 @@ import { getAllDocuments, reviewDocument } from "../../services/documentService"
 export default function AdminVerificationDocumentsPage() {
   const [items, setItems] = useState([]);
   const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+  const [rejectingId, setRejectingId] = useState(null);
+  const [rejectionComments, setRejectionComments] = useState({});
 
   const loadItems = async () => {
     try {
@@ -21,7 +24,26 @@ export default function AdminVerificationDocumentsPage() {
 
   const handleReview = async (id, status) => {
     try {
-      await reviewDocument(id, status);
+      setError("");
+      setMessage("");
+
+      if (status === "REJECTED") {
+        const comment = (rejectionComments[id] || "").trim();
+
+        if (!comment) {
+          setError("Please add a rejection reason so the user can understand what needs to be fixed.");
+          return;
+        }
+
+        await reviewDocument(id, status, comment);
+        setRejectionComments((current) => ({ ...current, [id]: "" }));
+        setRejectingId(null);
+        setMessage("Document rejected and the reason was sent to the user notification inbox.");
+      } else {
+        await reviewDocument(id, status);
+        setMessage("Document approved successfully.");
+      }
+
       await loadItems();
     } catch (err) {
       setError(err?.response?.data?.message || err?.message || "Failed to review document");
@@ -38,6 +60,7 @@ export default function AdminVerificationDocumentsPage() {
       <h2 className="text-2xl font-bold text-slate-900"></h2>
       <p className="mt-2 text-slate-500">Uploaded document to be reviewed.</p>
       {error && <div className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
+      {message && <div className="mt-4 rounded-xl bg-green-50 px-4 py-3 text-sm text-green-700">{message}</div>}
 
       <div className="mt-6 space-y-4">
         {items.length === 0 ? (
@@ -71,20 +94,75 @@ export default function AdminVerificationDocumentsPage() {
                   <div className="pt-1">
                     <StatusBadge status={item.status} />
                   </div>
+                  {item.comment && (
+                    <p className="text-sm text-slate-600">
+                      <span className="font-semibold text-slate-900">Last review comment:</span> {item.comment}
+                    </p>
+                  )}
                 </div>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => handleReview(item.id, "APPROVED")}
-                    className="rounded-lg bg-[#47A369] px-4 py-2 text-sm font-semibold text-white"
-                  >
-                    Approve
-                  </button>
-                  <button
-                    onClick={() => handleReview(item.id, "REJECTED")}
-                    className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white"
-                  >
-                    Reject
-                  </button>
+                <div className="w-full max-w-md space-y-3">
+                  {rejectingId === item.id && (
+                    <div className="rounded-xl border border-red-200 bg-red-50 p-3">
+                      <label className="block text-sm font-medium text-slate-700">
+                        Rejection reason
+                        <textarea
+                          value={rejectionComments[item.id] || ""}
+                          onChange={(event) =>
+                            setRejectionComments((current) => ({
+                              ...current,
+                              [item.id]: event.target.value,
+                            }))
+                          }
+                          rows={3}
+                          placeholder="Explain what is wrong with this document and what the user should upload instead."
+                          className="mt-2 w-full rounded-lg border border-red-200 bg-white px-3 py-2 text-sm text-slate-700"
+                        />
+                      </label>
+                      <p className="mt-2 text-xs text-slate-500">
+                        This reason will be sent to the manager or transporter in their notifications.
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      onClick={() => handleReview(item.id, "APPROVED")}
+                      className="rounded-lg bg-[#47A369] px-4 py-2 text-sm font-semibold text-white"
+                    >
+                      Approve
+                    </button>
+                    {rejectingId === item.id ? (
+                      <>
+                        <button
+                          onClick={() => handleReview(item.id, "REJECTED")}
+                          className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white"
+                        >
+                          Confirm Reject
+                        </button>
+                        <button
+                          onClick={() => {
+                            setRejectingId(null);
+                            setRejectionComments((current) => ({ ...current, [item.id]: "" }));
+                            setError("");
+                          }}
+                          className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700"
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setRejectingId(item.id);
+                          setMessage("");
+                          setError("");
+                        }}
+                        className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white"
+                      >
+                        Reject
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

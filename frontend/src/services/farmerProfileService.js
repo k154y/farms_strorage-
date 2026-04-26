@@ -11,9 +11,9 @@ export const updateFarmerAccount = async (payload) => {
   return (await api.put("/api/farmer/profile/account", { ...payload, userId: user?.id })).data;
 };
 
-export const addFarmLocation = async (payload) => {
+export const addFarmLocation = async (payload, overrideUserId) => {
   const user = getUser();
-  return (await api.post("/api/farmer/profile/locations", payload, { params: { userId: user?.id } })).data;
+  return (await api.post("/api/farmer/profile/locations", payload, { params: { userId: overrideUserId ?? user?.id } })).data;
 };
 
 export const deleteFarmLocation = async (locationId) => {

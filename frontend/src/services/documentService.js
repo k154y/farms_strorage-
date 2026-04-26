@@ -9,12 +9,13 @@ export const getMyDocuments = async () => {
   return data;
 };
 
-export const uploadDocument = async ({ file, type }) => {
+export const uploadDocument = async ({ file, type, userId: overrideUserId }) => {
   const user = getUser();
+  const userId = overrideUserId ?? user?.id;
   const formData = new FormData();
   formData.append("file", file);
   formData.append("type", type);
-  formData.append("userId", user?.id ?? "");
+  formData.append("userId", userId ?? "");
 
   const { data } = await api.post("/api/documents/upload", formData, {
     headers: {

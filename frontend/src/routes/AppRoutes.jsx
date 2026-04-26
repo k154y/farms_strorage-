@@ -34,6 +34,7 @@ import VehiclesPage from "../pages/transport/VehiclesPage";
 import AddVehiclePage from "../pages/transport/AddVehiclePage";
 import TransportRequestsPage from "../pages/transport/TransportRequestsPage";
 import TransportRequestDetailPage from "../pages/transport/TransportRequestDetailPage";
+import TransportNotificationsPage from "../pages/transport/TransportNotificationsPage";
 import TransportProfilePage from "../pages/transport/TransportProfilePage";
 import AdminDashboard from "../pages/admin/AdminDashboard";
 import AdminUsersPage from "../pages/admin/AdminUsersPage";
@@ -43,10 +44,6 @@ import AdminNotificationsPage from "../pages/admin/AdminNotificationsPage";
 import AdminAuditLogsPage from "../pages/admin/AdminAuditLogsPage";
 import NotFoundPage from "../pages/NotFoundPage";
 import HowItWorksPage from "../pages/public/HowItWorksPage";
-
-function TransportNotificationsPage() {
-  return <div className="rounded-2xl bg-white p-6 shadow-sm">Transport notifications page.</div>;
-}
 
 export default function AppRoutes() {
   return (

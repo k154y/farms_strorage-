@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
-import { getMyNotifications, markNotificationRead } from "../../services/notificationService";
+import {
+  emitNotificationsUpdated,
+  getMyNotifications,
+  markNotificationRead,
+} from "../../services/notificationService";
 import { getUser } from "../../utilis/auth";
 
 export default function FarmerNotificationsPage() {
@@ -11,6 +15,7 @@ export default function FarmerNotificationsPage() {
     try {
       const data = await getMyNotifications(user?.id);
       setItems(data || []);
+      emitNotificationsUpdated();
     } catch (err) {
       setError(err?.response?.data?.message || err?.message || "Failed to load notifications");
     }
@@ -24,6 +29,7 @@ export default function FarmerNotificationsPage() {
     try {
       await markNotificationRead(id);
       await loadItems();
+      emitNotificationsUpdated();
     } catch (err) {
       setError(err?.response?.data?.message || err?.message || "Failed to update notification");
     }

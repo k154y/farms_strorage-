@@ -5,7 +5,7 @@ import com.agristorage.dto.request.RegisterFarmerRequest;
 import com.agristorage.dto.request.RegisterManagerRequest;
 import com.agristorage.dto.request.RegisterTransporterRequest;
 import com.agristorage.dto.response.JwtResponse;
-import com.agristorage.dto.response.MessageResponse;
+import com.agristorage.dto.response.RegistrationResponse;
 import com.agristorage.service.auth.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,21 +19,18 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register/farmer")
-    public MessageResponse registerFarmer(@Valid @RequestBody RegisterFarmerRequest request) {
-        authService.registerFarmer(request);
-        return new MessageResponse("Farmer registered");
+    public RegistrationResponse registerFarmer(@Valid @RequestBody RegisterFarmerRequest request) {
+        return authService.registerFarmer(request);
     }
 
     @PostMapping("/register/storage-manager")
-    public MessageResponse registerManager(@Valid @RequestBody RegisterManagerRequest request) {
-        authService.registerManager(request);
-        return new MessageResponse("Manager pending approval");
+    public RegistrationResponse registerManager(@Valid @RequestBody RegisterManagerRequest request) {
+        return authService.registerManager(request);
     }
 
     @PostMapping("/register/transporter")
-    public MessageResponse registerTransporter(@Valid @RequestBody RegisterTransporterRequest request) {
-        authService.registerTransporter(request);
-        return new MessageResponse("Transporter pending approval");
+    public RegistrationResponse registerTransporter(@Valid @RequestBody RegisterTransporterRequest request) {
+        return authService.registerTransporter(request);
     }
 
     @PostMapping("/login")
