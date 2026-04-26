@@ -31,5 +31,6 @@ public class CreateBookingRequest {
     private LocalDate entryDate;
 
     @NotNull
+    @Positive
     private Integer expectedDurationDays;
 }

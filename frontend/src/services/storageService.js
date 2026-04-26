@@ -12,5 +12,5 @@ export const getColdRooms = async () => {
 
 export const getCategories = async () => {
   const { data } = await api.get("/api/storage/categories");
-  return data;
+  return data?.data || [];
 };

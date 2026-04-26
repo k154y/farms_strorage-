@@ -13,7 +13,6 @@ import java.time.LocalDate;
 @Setter
 public class CreateTransportRequestRequest {
 
-    @NotNull(message = "Booking ID is required")
     private Long bookingId;
 
     @NotNull(message = "Farmer ID is required")

@@ -30,6 +30,11 @@ import BookingRequestsPage from "../pages/storage/BookingRequestsPage";
 import StorageNotificationsPage from "../pages/storage/StorageNotificationsPage";
 import StorageProfilePage from "../pages/storage/StorageProfilePage";
 import TransporterDashboard from "../pages/transport/TransporterDashboard";
+import VehiclesPage from "../pages/transport/VehiclesPage";
+import AddVehiclePage from "../pages/transport/AddVehiclePage";
+import TransportRequestsPage from "../pages/transport/TransportRequestsPage";
+import TransportRequestDetailPage from "../pages/transport/TransportRequestDetailPage";
+import TransportNotificationsPage from "../pages/transport/TransportNotificationsPage";
 import TransportProfilePage from "../pages/transport/TransportProfilePage";
 import AdminDashboard from "../pages/admin/AdminDashboard";
 import AdminUsersPage from "../pages/admin/AdminUsersPage";
@@ -59,6 +64,7 @@ export default function AppRoutes() {
           <Route element={<RoleRoute allowedRoles={["FARMER"]} />}>
             <Route path="/farmer/dashboard" element={<FarmerDashboard />} />
             <Route path="/farmer/bookings" element={<BookingHistoryPage />} />
+            <Route path="/farmer/findstorage" element={<BookStoragePage/>}/>
             <Route path="/farmer/bookings/create" element={<FarmerCreateBookingPage />} />
             <Route path="/farmer/bookings/:id" element={<BookingDetailPage />} />
             <Route path="/farmer/listings" element={<MyListingsPage />} />
@@ -81,6 +87,11 @@ export default function AppRoutes() {
 
           <Route element={<RoleRoute allowedRoles={["TRANSPORTER"]} />}>
             <Route path="/transport/dashboard" element={<TransporterDashboard />} />
+            <Route path="/transport/vehicles" element={<VehiclesPage />} />
+            <Route path="/transport/vehicles/create" element={<AddVehiclePage />} />
+            <Route path="/transport/requests" element={<TransportRequestsPage />} />
+            <Route path="/transport/requests/:id" element={<TransportRequestDetailPage />} />
+            <Route path="/transport/notifications" element={<TransportNotificationsPage />} />
             <Route path="/transport/profile" element={<TransportProfilePage />} />
           </Route>
 

@@ -29,7 +29,7 @@ export default function PendingApprovalsPage() {
 
   return (
     <div className="rounded-2xl bg-white p-6 shadow-sm">
-      <h2 className="text-2xl font-bold text-slate-900">Pending Approvals</h2>
+      <h2 className="text-2xl font-bold text-slate-900"></h2>
       <p className="mt-2 text-slate-500">
         Review storage owner and transporter accounts after they upload their profile documents.
       </p>

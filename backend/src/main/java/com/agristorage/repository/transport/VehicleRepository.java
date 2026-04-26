@@ -12,5 +12,7 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
 
     List<Vehicle> findByTransporterId(Long transporterId);
 
+    List<Vehicle> findByTransporterIdAndActiveTrue(Long transporterId);
+
     List<Vehicle> findByActive(boolean active);
 }

@@ -6,7 +6,12 @@ import {
 } from "../../services/notificationService";
 import { getUser } from "../../utilis/auth";
 
-export default function AdminNotificationsPage() {
+function formatDate(value) {
+  if (!value) return "Unknown time";
+  return new Date(value).toLocaleString();
+}
+
+export default function TransportNotificationsPage() {
   const user = getUser();
   const [items, setItems] = useState([]);
   const [error, setError] = useState("");
@@ -37,7 +42,10 @@ export default function AdminNotificationsPage() {
 
   return (
     <div className="rounded-2xl bg-white p-6 shadow-sm">
-      <h2 className="text-2xl font-bold text-slate-900"></h2>
+      <h2 className="text-2xl font-bold text-slate-900">Transporter Notifications</h2>
+      <p className="mt-2 text-slate-500">
+        Review transport updates, assignment changes, and document feedback from admin.
+      </p>
       {error && <div className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
       <div className="mt-6 space-y-3">
         {items.length === 0 ? (
@@ -55,7 +63,10 @@ export default function AdminNotificationsPage() {
                       </span>
                     )}
                   </div>
-                  <p className="mt-1 text-sm text-slate-600">{item.message}</p>
+                  <p className="mt-2 text-sm text-slate-600">{item.message}</p>
+                  <p className="mt-3 text-xs uppercase tracking-wide text-slate-400">
+                    {formatDate(item.createdAt)}
+                  </p>
                 </div>
                 {!item.read && (
                   <button

@@ -22,8 +22,8 @@ public class TransportRequest extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "booking_id", nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "booking_id")
     private Booking booking;
 
     @ManyToOne(optional = false)

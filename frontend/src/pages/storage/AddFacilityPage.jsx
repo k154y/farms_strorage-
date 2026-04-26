@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import GoogleMapsLocationPicker from "../../components/storage/GoogleMapsLocationPicker";
 import { createFacility } from "../../services/facilityService";
 import { getUser } from "../../utilis/auth";
 
@@ -59,7 +60,7 @@ export default function AddFacilityPage() {
     <div className="rounded-2xl bg-white p-6 shadow-sm">
       <h2 className="text-2xl font-bold text-slate-900">Add Facility</h2>
       <p className="mt-2 text-slate-500">
-        Register a new storage facility under your manager account.
+        Register a new storage facility under your manager account. Google Maps location is optional.
       </p>
 
       <form onSubmit={handleSubmit} className="mt-6 grid gap-4 md:grid-cols-2">
@@ -101,6 +102,7 @@ export default function AddFacilityPage() {
           className="rounded-xl border border-slate-300 px-4 py-3"
           placeholder="Contact Email"
         />
+        <GoogleMapsLocationPicker form={form} setForm={setForm} />
         <input
           name="latitude"
           type="number"
@@ -108,7 +110,7 @@ export default function AddFacilityPage() {
           value={form.latitude}
           onChange={handleChange}
           className="rounded-xl border border-slate-300 px-4 py-3"
-          placeholder="Latitude"
+          placeholder="Latitude (optional)"
         />
         <input
           name="longitude"
@@ -117,7 +119,7 @@ export default function AddFacilityPage() {
           value={form.longitude}
           onChange={handleChange}
           className="rounded-xl border border-slate-300 px-4 py-3"
-          placeholder="Longitude"
+          placeholder="Longitude (optional)"
         />
         <input
           name="address"

@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { getFacilityPhotos } from "../../services/facilityService";
 
-export default function FacilityCard({ facility, showLink = true }) {
+export default function FacilityCard({ facility, showLink = true, distanceKm = null }) {
   const [photoUrl, setPhotoUrl] = useState("");
 
   useEffect(() => {
@@ -33,6 +33,11 @@ export default function FacilityCard({ facility, showLink = true }) {
       <div className="p-5">
       <h3 className="text-lg font-semibold text-slate-900">{facility.name}</h3>
       <p className="mt-2 text-sm text-slate-500">{facility.district} {facility.sector ? `, ${facility.sector}` : ""}</p>
+      {distanceKm != null && (
+        <p className="mt-1 text-sm font-medium text-[#47A369]">
+          {distanceKm.toFixed(1)} km from you
+        </p>
+      )}
       <p className="mt-2 text-sm text-slate-600">{facility.description || "No description"}</p>
       {showLink && (
         <Link to={`/storage/facilities/${facility.id}`} className="mt-4 inline-block font-semibold text-[#47A369]">

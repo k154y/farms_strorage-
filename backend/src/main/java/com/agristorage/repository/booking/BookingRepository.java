@@ -3,5 +3,9 @@ package com.agristorage.repository.booking;
 import com.agristorage.entity.booking.Booking;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
+
 public interface BookingRepository extends JpaRepository<Booking, Long> {
+    List<Booking> findByFarmerId(Long farmerId);
+    List<Booking> findByFacilityManagerId(Long managerId);
 }

@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -83,23 +84,31 @@ public class VerificationDocumentService {
         VerificationDocument doc = documentRepository.findById(docId)
                 .orElseThrow(() -> new RuntimeException("Document not found"));
 
+        String reviewComment = comment != null ? comment.trim() : "";
+
         if (status == VerificationStatus.REJECTED) {
+            String rejectionReason = reviewComment.isBlank()
+                    ? "No specific reason was added."
+                    : reviewComment;
+
             deleteCloudinaryAsset(doc.getFilePath());
             documentRepository.delete(doc);
             notificationService.createNotification(
                     doc.getUser().getId(),
                     "Document Rejected",
-                    "Your document " + doc.getDocumentType() + " was rejected and removed. Please upload a new one.",
+                    "Your document " + doc.getDocumentType() + " was rejected and removed. Reason: "
+                            + rejectionReason + " Please upload a new one.",
                     "DOCUMENT_REJECTED"
             );
-            auditLogService.log(doc.getUser().getId(), "DOCUMENT_REJECTED", "VERIFICATION_DOCUMENT", doc.getId(), comment);
+            auditLogService.log(doc.getUser().getId(), "DOCUMENT_REJECTED", "VERIFICATION_DOCUMENT", doc.getId(), rejectionReason);
             return doc;
         }
 
         doc.setStatus(status);
-        doc.setComment(comment);
+        doc.setComment(reviewComment.isBlank() ? null : reviewComment);
+        doc.setReviewedAt(LocalDateTime.now());
         VerificationDocument saved = documentRepository.save(doc);
-        auditLogService.log(doc.getUser().getId(), "DOCUMENT_" + status.name(), "VERIFICATION_DOCUMENT", doc.getId(), comment);
+        auditLogService.log(doc.getUser().getId(), "DOCUMENT_" + status.name(), "VERIFICATION_DOCUMENT", doc.getId(), reviewComment);
         return saved;
     }
 

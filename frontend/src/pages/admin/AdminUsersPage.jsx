@@ -28,7 +28,7 @@ export default function AdminUsersPage() {
 
   return (
     <div className="rounded-2xl bg-white p-6 shadow-sm">
-      <h2 className="text-2xl font-bold text-slate-900">Users</h2>
+      <h2 className="text-2xl font-bold text-slate-900"></h2>
       {error && <div className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
       <div className="mt-6 overflow-x-auto">
         <table className="min-w-full">

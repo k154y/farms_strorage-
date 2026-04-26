@@ -1,10 +1,32 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { getListingImages } from "../../services/marketplaceService";
 
 export default function ProductCard({ product }) {
+  const [imageUrl, setImageUrl] = useState(product.imageUrl || "");
+
+  useEffect(() => {
+    let active = true;
+
+    getListingImages(product.id)
+      .then((items) => {
+        if (!active) return;
+        setImageUrl(items?.[0]?.filePath || product.imageUrl || "");
+      })
+      .catch(() => {
+        if (!active) return;
+        setImageUrl(product.imageUrl || "");
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [product.id, product.imageUrl]);
+
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <img
-        src={product.imageUrl || "https://images.unsplash.com/photo-1546094096-0df4bcaaa337?q=80&w=1200&auto=format&fit=crop"}
+        src={imageUrl || "https://images.unsplash.com/photo-1546094096-0df4bcaaa337?q=80&w=1200&auto=format&fit=crop"}
         alt={product.name}
         className="h-64 w-full object-cover"
       />

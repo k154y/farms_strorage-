@@ -15,8 +15,10 @@ import com.agristorage.repository.transport.TransportRequestRepository;
 import com.agristorage.repository.transport.TransportStatusHistoryRepository;
 import com.agristorage.repository.transport.VehicleRepository;
 import com.agristorage.repository.user.UserRepository;
+import com.agristorage.service.user.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -29,11 +31,9 @@ public class TransportRequestService {
     private final BookingRepository bookingRepository;
     private final UserRepository userRepository;
     private final VehicleRepository vehicleRepository;
+    private final NotificationService notificationService;
 
     public TransportRequest createTransportRequest(CreateTransportRequestRequest request) {
-        Booking booking = bookingRepository.findById(request.getBookingId())
-                .orElseThrow(() -> new RuntimeException("Booking not found with id: " + request.getBookingId()));
-
         User farmer = userRepository.findById(request.getFarmerId())
                 .orElseThrow(() -> new RuntimeException("Farmer not found with id: " + request.getFarmerId()));
 
@@ -41,12 +41,18 @@ public class TransportRequestService {
             throw new RuntimeException("User is not a farmer");
         }
 
-        if (!booking.getFarmer().getId().equals(farmer.getId())) {
-            throw new RuntimeException("Farmer does not own this booking");
-        }
+        Booking booking = null;
+        if (request.getBookingId() != null) {
+            booking = bookingRepository.findById(request.getBookingId())
+                    .orElseThrow(() -> new RuntimeException("Booking not found with id: " + request.getBookingId()));
 
-        if (request.getQuantityToTransport() > booking.getQuantity()) {
-            throw new RuntimeException("Quantity to transport cannot exceed booking quantity");
+            if (!booking.getFarmer().getId().equals(farmer.getId())) {
+                throw new RuntimeException("Farmer does not own this booking");
+            }
+
+            if (request.getQuantityToTransport() > booking.getQuantity()) {
+                throw new RuntimeException("Quantity to transport cannot exceed booking quantity");
+            }
         }
 
         TransportRequest transportRequest = TransportRequest.builder()
@@ -84,8 +90,31 @@ public class TransportRequestService {
         return transportRequestRepository.findByTransporterId(transporterId);
     }
 
+    public List<TransportRequest> getAvailableRequestsForTransporter(Long transporterId) {
+        User transporter = userRepository.findById(transporterId)
+                .orElseThrow(() -> new RuntimeException("Transporter not found with id: " + transporterId));
+
+        if (transporter.getRole() != Role.TRANSPORTER) {
+            throw new RuntimeException("User is not a transporter");
+        }
+
+        List<Vehicle> activeVehicles = vehicleRepository.findByTransporterIdAndActiveTrue(transporterId);
+        if (activeVehicles.isEmpty()) {
+            return List.of();
+        }
+
+        return transportRequestRepository.findByStatusAndTransporterIsNull(TransportRequestStatus.PENDING)
+                .stream()
+                .filter(request -> activeVehicles.stream()
+                        .anyMatch(vehicle -> vehicle.getCapacity() != null
+                                && vehicle.getCapacity() >= request.getQuantityToTransport()))
+                .toList();
+    }
+
+    @Transactional
     public TransportRequest assignTransportRequest(Long transportRequestId, AssignTransportRequest request) {
-        TransportRequest transportRequest = getTransportRequestById(transportRequestId);
+        TransportRequest transportRequest = transportRequestRepository.findWithLockById(transportRequestId)
+                .orElseThrow(() -> new RuntimeException("Transport request not found with id: " + transportRequestId));
 
         User transporter = userRepository.findById(request.getTransporterId())
                 .orElseThrow(() -> new RuntimeException("Transporter not found with id: " + request.getTransporterId()));
@@ -101,13 +130,32 @@ public class TransportRequestService {
             throw new RuntimeException("Vehicle does not belong to this transporter");
         }
 
+        if (!vehicle.isActive()) {
+            throw new RuntimeException("Selected vehicle is not active");
+        }
+
+        if (vehicle.getCapacity() == null || vehicle.getCapacity() < transportRequest.getQuantityToTransport()) {
+            throw new RuntimeException("Selected vehicle does not meet the transport quantity requirement");
+        }
+
         TransportRequestStatus oldStatus = transportRequest.getStatus();
+
+        if (oldStatus != TransportRequestStatus.PENDING || transportRequest.getTransporter() != null) {
+            throw new RuntimeException("This transport request has already been accepted by another transporter");
+        }
 
         transportRequest.setTransporter(transporter);
         transportRequest.setVehicle(vehicle);
         transportRequest.setStatus(TransportRequestStatus.ASSIGNED);
 
         saveHistory(transportRequest, oldStatus, TransportRequestStatus.ASSIGNED, request.getChangedByUserId(), request.getComment());
+
+        notificationService.createNotification(
+                transportRequest.getFarmer().getId(),
+                "Transport Request Assigned",
+                "Your transport request #" + transportRequest.getId() + " has been accepted by a transporter.",
+                "TRANSPORT_ASSIGNED"
+        );
 
         return transportRequestRepository.save(transportRequest);
     }
