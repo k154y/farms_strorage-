@@ -1,6 +1,11 @@
-import { useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { loginUser } from "../../services/authService";
+import { loginUser, loginWithGoogleUser } from "../../services/authService";
+import {
+  getGoogleClientId,
+  hasGoogleClientId,
+  loadGoogleIdentityScript,
+} from "../../utilis/googleIdentity";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -8,6 +13,9 @@ export default function LoginPage() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [googleReady, setGoogleReady] = useState(false);
+  const [googleEnabled, setGoogleEnabled] = useState(hasGoogleClientId());
+  const googleButtonRef = useRef(null);
 
   const routeByRole = (role) => {
     switch (role) {
@@ -28,6 +36,41 @@ export default function LoginPage() {
     return routeByRole(user.role);
   };
 
+  const persistSession = (data) => {
+    const user = {
+      id: data.id,
+      fullName: data.fullName,
+      email: data.email,
+      role: data.role,
+      status: data.status,
+    };
+
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("user", JSON.stringify(user));
+
+    const nextPath = location.state?.from?.pathname || getPostLoginPath(user);
+    navigate(nextPath, { replace: true });
+  };
+
+  const handleGoogleCredential = useEffectEvent(async (credential) => {
+    if (!credential) {
+      setError("Google sign-in did not return a valid credential.");
+      return;
+    }
+
+    setSubmitting(true);
+    setError("");
+
+    try {
+      const data = await loginWithGoogleUser(credential);
+      persistSession(data);
+    } catch (err) {
+      setError(err?.response?.data?.message || err?.message || "Google sign-in failed");
+    } finally {
+      setSubmitting(false);
+    }
+  });
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setSubmitting(true);
@@ -35,25 +78,56 @@ export default function LoginPage() {
 
     try {
       const data = await loginUser(form);
-      const user = {
-        id: data.id,
-        fullName: data.fullName,
-        email: data.email,
-        role: data.role,
-        status: data.status,
-      };
-
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(user));
-
-      const nextPath = location.state?.from?.pathname || getPostLoginPath(user);
-      navigate(nextPath, { replace: true });
+      persistSession(data);
     } catch (err) {
       setError(err?.response?.data?.message || err?.message || "Login failed");
     } finally {
       setSubmitting(false);
     }
   };
+
+  useEffect(() => {
+    if (!googleEnabled || !googleButtonRef.current) {
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    loadGoogleIdentityScript()
+      .then((google) => {
+        if (cancelled || !google?.accounts?.id || !googleButtonRef.current) {
+          return;
+        }
+
+        google.accounts.id.initialize({
+          client_id: getGoogleClientId(),
+          callback: ({ credential }) => {
+            handleGoogleCredential(credential);
+          },
+        });
+
+        googleButtonRef.current.innerHTML = "";
+        google.accounts.id.renderButton(googleButtonRef.current, {
+          theme: "outline",
+          size: "large",
+          type: "standard",
+          shape: "pill",
+          text: "signin_with",
+          width: 320,
+        });
+        setGoogleReady(true);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setGoogleEnabled(false);
+          setError("Google sign-in is unavailable right now.");
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [googleEnabled]);
 
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
@@ -89,7 +163,7 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
           <h2 className="text-4xl font-bold text-slate-900">Login</h2>
           <p className="mt-3 text-slate-500">
-            Enter your credentials to access your account. Storage owners and transporters will complete documents in profile before admin approval.
+            Enter your credentials to access your account. New accounts must confirm their email before login.
           </p>
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-5">
@@ -123,6 +197,36 @@ export default function LoginPage() {
               {submitting ? "Signing In..." : "Harvest Access"}
             </button>
           </form>
+
+          <div className="mt-4 text-right text-sm">
+            <Link to="/forgot-password" className="font-semibold text-[#47A369]">
+              Forgot password?
+            </Link>
+          </div>
+
+          <div className="mt-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-slate-200" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase tracking-[0.25em] text-slate-400">
+                <span className="bg-white px-3">or</span>
+              </div>
+            </div>
+
+            {googleEnabled ? (
+              <div className="mt-5 flex flex-col items-center gap-3">
+                <div ref={googleButtonRef} className={googleReady ? "" : "min-h-[44px]"} />
+                <p className="text-center text-sm text-slate-500">
+                  Use Google with the same email as your existing account.
+                </p>
+              </div>
+            ) : (
+              <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                Google sign-in is hidden until `VITE_GOOGLE_CLIENT_ID` is added to the frontend environment.
+              </div>
+            )}
+          </div>
 
           <p className="mt-6 text-sm text-slate-600">
             New here?{" "}

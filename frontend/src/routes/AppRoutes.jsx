@@ -9,6 +9,10 @@ import MarketplacePage from "../pages/marketplace/MarketplacePage";
 import ProductDetailsPage from "../pages/marketplace/ProductDetailsPage";
 import LoginPage from "../pages/auth/LoginPage";
 import RegisterPage from "../pages/auth/RegisterPage";
+import VerifyEmailPage from "../pages/auth/VerifyEmailPage";
+import ForgotPasswordPage from "../pages/auth/ForgotPasswordPage";
+import ResetPasswordPage from "../pages/auth/ResetPasswordPage";
+import ResendVerificationPage from "../pages/auth/ResendVerificationPage";
 import RegisterStoragePage from "../pages/storage/RegisterStoragePage";
 import BookStoragePage from "../pages/booking/BookStoragePage";
 
@@ -55,6 +59,10 @@ export default function AppRoutes() {
         <Route path="/how-it-works" element={<HowItWorksPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/resend-verification" element={<ResendVerificationPage />} />
         <Route path="/register-storage" element={<RegisterStoragePage />} />
         <Route path="/find-storage" element={<BookStoragePage />} />
       </Route>
