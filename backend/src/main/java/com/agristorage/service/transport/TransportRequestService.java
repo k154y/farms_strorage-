@@ -153,7 +153,7 @@ public class TransportRequestService {
         notificationService.createNotification(
                 transportRequest.getFarmer().getId(),
                 "Transport Request Assigned",
-                "Your transport request #" + transportRequest.getId() + " has been accepted by a transporter.",
+                buildAssignmentMessage(transportRequest),
                 "TRANSPORT_ASSIGNED"
         );
 
@@ -183,6 +183,35 @@ public class TransportRequestService {
     public void deleteTransportRequest(Long id) {
         TransportRequest transportRequest = getTransportRequestById(id);
         transportRequestRepository.delete(transportRequest);
+    }
+
+    private String buildAssignmentMessage(TransportRequest transportRequest) {
+        User transporter = transportRequest.getTransporter();
+        Vehicle vehicle = transportRequest.getVehicle();
+
+        StringBuilder message = new StringBuilder(
+                "Your transport request #" + transportRequest.getId() + " has been accepted"
+        );
+
+        if (transporter != null && transporter.getFullName() != null && !transporter.getFullName().isBlank()) {
+            message.append(" by ").append(transporter.getFullName().trim());
+        }
+
+        message.append(".");
+
+        if (transporter != null && transporter.getPhoneNumber() != null && !transporter.getPhoneNumber().isBlank()) {
+            message.append(" Phone: ").append(transporter.getPhoneNumber().trim()).append(".");
+        }
+
+        if (transporter != null && transporter.getEmail() != null && !transporter.getEmail().isBlank()) {
+            message.append(" Email: ").append(transporter.getEmail().trim()).append(".");
+        }
+
+        if (vehicle != null && vehicle.getPlateNumber() != null && !vehicle.getPlateNumber().isBlank()) {
+            message.append(" Vehicle: ").append(vehicle.getPlateNumber().trim()).append(".");
+        }
+
+        return message.toString();
     }
 
     private void saveHistory(TransportRequest transportRequest,

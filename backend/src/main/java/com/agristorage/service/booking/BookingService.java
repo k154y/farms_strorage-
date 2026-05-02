@@ -7,14 +7,19 @@ import com.agristorage.entity.booking.BookingStatusHistory;
 import com.agristorage.entity.storage.ColdRoom;
 import com.agristorage.entity.storage.ProduceCategory;
 import com.agristorage.entity.storage.StorageFacility;
+import com.agristorage.entity.transport.TransportRequest;
+import com.agristorage.entity.transport.TransportStatusHistory;
 import com.agristorage.entity.user.User;
 import com.agristorage.enums.BookingStatus;
 import com.agristorage.enums.Role;
+import com.agristorage.enums.TransportRequestStatus;
 import com.agristorage.repository.booking.BookingRepository;
 import com.agristorage.repository.booking.BookingStatusHistoryRepository;
 import com.agristorage.repository.storage.ColdRoomRepository;
 import com.agristorage.repository.storage.ProduceCategoryRepository;
 import com.agristorage.repository.storage.StorageFacilityRepository;
+import com.agristorage.repository.transport.TransportRequestRepository;
+import com.agristorage.repository.transport.TransportStatusHistoryRepository;
 import com.agristorage.repository.user.UserRepository;
 import com.agristorage.service.common.AuditLogService;
 import com.agristorage.service.user.NotificationService;
@@ -34,6 +39,8 @@ public class BookingService {
     private final StorageFacilityRepository facilityRepository;
     private final ColdRoomRepository coldRoomRepository;
     private final ProduceCategoryRepository categoryRepository;
+    private final TransportRequestRepository transportRequestRepository;
+    private final TransportStatusHistoryRepository transportStatusHistoryRepository;
     private final NotificationService notificationService;
     private final AuditLogService auditLogService;
 
@@ -132,6 +139,10 @@ public class BookingService {
             coldRoomRepository.save(room);
         }
 
+        if (newStatus == BookingStatus.CANCELLED) {
+            cancelLinkedTransportRequestsIfAllowed(booking, request.getChangedByUserId(), request.getComment());
+        }
+
         // history
         BookingStatusHistory history = BookingStatusHistory.builder()
                 .booking(booking)
@@ -149,6 +160,16 @@ public class BookingService {
                 "Your booking #" + booking.getId() + " is now " + newStatus.name() + ".",
                 "GENERAL"
         );
+
+        if (newStatus == BookingStatus.CANCELLED && booking.getFacility() != null && booking.getFacility().getManager() != null) {
+            notificationService.createNotification(
+                    booking.getFacility().getManager().getId(),
+                    "Booking Cancelled",
+                    "Booking #" + booking.getId() + " was cancelled by the farmer. Any reserved storage space has been released.",
+                    "GENERAL"
+            );
+        }
+
         auditLogService.log(booking.getFarmer().getId(), "BOOKING_" + newStatus.name(), "BOOKING", booking.getId(), request.getComment());
 
         return saved;
@@ -157,6 +178,50 @@ public class BookingService {
     public void deleteBooking(Long id) {
         Booking booking = getBookingById(id);
         bookingRepository.delete(booking);
+    }
+
+    private void cancelLinkedTransportRequestsIfAllowed(Booking booking, Long changedByUserId, String comment) {
+        List<TransportRequest> linkedRequests = transportRequestRepository.findByBookingId(booking.getId());
+
+        for (TransportRequest request : linkedRequests) {
+            TransportRequestStatus currentStatus = request.getStatus();
+
+            if (currentStatus == TransportRequestStatus.CANCELLED || currentStatus == TransportRequestStatus.COMPLETED) {
+                continue;
+            }
+
+            if (currentStatus == TransportRequestStatus.PICKED_UP || currentStatus == TransportRequestStatus.DELIVERED) {
+                throw new RuntimeException("This booking cannot be cancelled because the linked transport is already in progress.");
+            }
+
+            request.setStatus(TransportRequestStatus.CANCELLED);
+            transportRequestRepository.save(request);
+
+            User changedByUser = null;
+            if (changedByUserId != null) {
+                changedByUser = userRepository.findById(changedByUserId)
+                        .orElseThrow(() -> new RuntimeException("Changed-by user not found"));
+            }
+
+            transportStatusHistoryRepository.save(TransportStatusHistory.builder()
+                    .transportRequest(request)
+                    .oldStatus(currentStatus)
+                    .newStatus(TransportRequestStatus.CANCELLED)
+                    .changedByUser(changedByUser)
+                    .comment(comment != null && !comment.isBlank()
+                            ? comment
+                            : "Cancelled because the linked booking was cancelled.")
+                    .build());
+
+            if (request.getTransporter() != null) {
+                notificationService.createNotification(
+                        request.getTransporter().getId(),
+                        "Transport Request Cancelled",
+                        "Transport request #" + request.getId() + " was cancelled because booking #" + booking.getId() + " was cancelled by the farmer.",
+                        "GENERAL"
+                );
+            }
+        }
     }
 
     private void validateStatusTransition(BookingStatus oldStatus, BookingStatus newStatus) {

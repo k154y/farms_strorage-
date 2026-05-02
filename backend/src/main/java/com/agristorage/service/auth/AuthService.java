@@ -172,7 +172,7 @@ public class AuthService {
 
         StorageManagerProfile profile = new StorageManagerProfile();
         profile.setUser(user);
-        profile.setBusinessName(clean(request.getBusinessName()));
+        profile.setBusinessName(clean(request.getBusinessName()) != null ? clean(request.getBusinessName()) : "");
         profile.setRdbRegistrationNumber(clean(request.getRdbRegistrationNumber()));
         profile.setFdaLicenseId(clean(request.getFdaLicenseId()));
         profile.setRsbCertificationId(clean(request.getRsbCertificationId()));
@@ -484,7 +484,7 @@ public class AuthService {
     private void createStorageManagerProfile(User user, GoogleRegisterRequest request) {
         StorageManagerProfile profile = new StorageManagerProfile();
         profile.setUser(user);
-        profile.setBusinessName(clean(request.getBusinessName()));
+        profile.setBusinessName(clean(request.getBusinessName()) != null ? clean(request.getBusinessName()) : "");
         profile.setRdbRegistrationNumber(clean(request.getRdbRegistrationNumber()));
         profile.setFdaLicenseId(clean(request.getFdaLicenseId()));
         profile.setRsbCertificationId(clean(request.getRsbCertificationId()));
@@ -541,24 +541,6 @@ public class AuthService {
         if (request.getRole() == Role.FARMER) {
             requireText(request.getDistrict(), "District is required.");
             requireText(request.getSector(), "Sector is required.");
-            return;
-        }
-
-        if (request.getRole() == Role.STORAGE_MANAGER) {
-            requireText(request.getBusinessName(), "Business name is required.");
-            requireText(request.getOwnerName(), "Owner name is required.");
-            requireText(request.getDistrict(), "District is required.");
-            requireText(request.getSector(), "Sector is required.");
-            requireText(request.getContactPhone(), "Contact phone is required.");
-            return;
-        }
-
-        if (request.getRole() == Role.TRANSPORTER) {
-            requireText(request.getBusinessName(), "Business name is required.");
-            requireText(request.getDrivingLicenseNumber(), "Driving license number is required.");
-            requireText(request.getDistrict(), "District is required.");
-            requireText(request.getSector(), "Sector is required.");
-            requireText(request.getContactPhone(), "Contact phone is required.");
         }
     }
 

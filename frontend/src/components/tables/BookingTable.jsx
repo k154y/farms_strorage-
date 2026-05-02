@@ -1,7 +1,13 @@
 import { Link } from "react-router-dom";
 import StatusBadge from "../common/StatusBadge";
 
-export default function BookingTable({ items = [] }) {
+export default function BookingTable({
+  items = [],
+  onCancel = () => {},
+  cancellingId = null,
+}) {
+  const canCancel = (item) => item.status === "PENDING" || item.status === "APPROVED";
+
   return (
     <div className="overflow-x-auto rounded-2xl bg-white shadow-sm">
       <table className="min-w-full">
@@ -22,7 +28,21 @@ export default function BookingTable({ items = [] }) {
               <td className="p-4">{item.quantity}</td>
               <td className="p-4"><StatusBadge status={item.status} /></td>
               <td className="p-4">
-                <Link to={`/farmer/bookings/${item.id}`} className="text-[#47A369] font-semibold">View</Link>
+                <div className="flex flex-wrap items-center gap-3">
+                  <Link to={`/farmer/bookings/${item.id}`} className="font-semibold text-[#47A369]">
+                    View
+                  </Link>
+                  {canCancel(item) ? (
+                    <button
+                      type="button"
+                      onClick={() => onCancel(item)}
+                      disabled={cancellingId === item.id}
+                      className="cursor-pointer font-semibold text-red-700 transition hover:text-red-800 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {cancellingId === item.id ? "Cancelling..." : "Cancel"}
+                    </button>
+                  ) : null}
+                </div>
               </td>
             </tr>
           ))}

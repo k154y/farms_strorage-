@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { createVehicle } from "../../services/transportService";
+import { getTransporterProfile } from "../../services/transporterProfileService";
 import { getUser } from "../../utilis/auth";
 
 const vehicleTypes = ["TRUCK", "VAN", "PICKUP", "MOTORBIKE", "OTHER"];
@@ -13,10 +15,19 @@ const initialForm = {
 
 export default function AddVehiclePage() {
   const user = getUser();
+  const [profileComplete, setProfileComplete] = useState(true);
+  const [loadingProfile, setLoadingProfile] = useState(true);
   const [form, setForm] = useState(initialForm);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    getTransporterProfile()
+      .then((data) => setProfileComplete(Boolean(data?.profileComplete)))
+      .catch(() => setProfileComplete(false))
+      .finally(() => setLoadingProfile(false));
+  }, []);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -51,6 +62,14 @@ export default function AddVehiclePage() {
   return (
     <div className="rounded-2xl bg-white p-6 shadow-sm">
       <h2 className="text-2xl font-bold">Add Vehicle</h2>
+      {!loadingProfile && !profileComplete ? (
+        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          Complete your transporter profile first before adding a vehicle.{" "}
+          <Link to="/transport/profile" className="font-semibold text-[#2d6a47]">
+            Go to profile
+          </Link>
+        </div>
+      ) : null}
       <form onSubmit={handleSubmit} className="mt-6 grid gap-4 md:grid-cols-2">
         <input
           name="plateNumber"
@@ -94,7 +113,7 @@ export default function AddVehiclePage() {
         {error && <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700 md:col-span-2">{error}</div>}
         <button
           type="submit"
-          disabled={submitting}
+          disabled={submitting || loadingProfile || !profileComplete}
           className="rounded-xl bg-[#47A369] px-4 py-3 text-white font-semibold disabled:opacity-60 md:col-span-2"
         >
           {submitting ? "Saving..." : "Save Vehicle"}

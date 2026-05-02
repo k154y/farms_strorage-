@@ -1,11 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import StatusBadge from "../../components/common/StatusBadge";
-import { getBookingById, getBookingHistory } from "../../services/bookingService";
+import {
+  getBookingById,
+  getBookingHistory,
+  updateBookingStatus,
+} from "../../services/bookingService";
 import {
   getTransportHistory,
   getTransportRequestsByBookingId,
 } from "../../services/transportService";
+import { getUser } from "../../utilis/auth";
 
 function formatDate(value) {
   if (!value) return "Not available";
@@ -19,12 +24,15 @@ function formatShortDate(value) {
 
 export default function BookingDetailPage() {
   const { id } = useParams();
+  const user = getUser();
   const [booking, setBooking] = useState(null);
   const [bookingHistory, setBookingHistory] = useState([]);
   const [transportRequests, setTransportRequests] = useState([]);
   const [transportHistoryByRequest, setTransportHistoryByRequest] = useState({});
   const [loading, setLoading] = useState(true);
+  const [cancelling, setCancelling] = useState(false);
   const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -37,6 +45,7 @@ export default function BookingDetailPage() {
       .then(async ([bookingData, bookingHistoryData, transportRequestData]) => {
         if (!active) return;
 
+        setMessage("");
         setBooking(bookingData);
         setBookingHistory(bookingHistoryData || []);
         setTransportRequests(transportRequestData || []);
@@ -73,6 +82,59 @@ export default function BookingDetailPage() {
     [bookingHistory]
   );
 
+  const canCancelBooking =
+    booking?.farmer?.id === user?.id &&
+    (booking?.status === "PENDING" || booking?.status === "APPROVED");
+
+  const handleCancelBooking = async () => {
+    if (!booking || !canCancelBooking) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Cancel booking #${booking.id}? This will also cancel linked transport requests that have not started yet.`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setCancelling(true);
+    setError("");
+    setMessage("");
+
+    try {
+      const updatedBooking = await updateBookingStatus(booking.id, {
+        status: "CANCELLED",
+        changedByUserId: user?.id,
+        comment: "Cancelled by farmer from booking detail page.",
+      });
+
+      setBooking(updatedBooking);
+      const [bookingHistoryData, transportRequestData] = await Promise.all([
+        getBookingHistory(booking.id).catch(() => []),
+        getTransportRequestsByBookingId(booking.id).catch(() => []),
+      ]);
+
+      setBookingHistory(bookingHistoryData || []);
+      setTransportRequests(transportRequestData || []);
+
+      const historyEntries = await Promise.all(
+        (transportRequestData || []).map(async (request) => {
+          const history = await getTransportHistory(request.id).catch(() => []);
+          return [request.id, history];
+        })
+      );
+
+      setTransportHistoryByRequest(Object.fromEntries(historyEntries));
+      setMessage("Booking cancelled successfully.");
+    } catch (err) {
+      setError(err?.response?.data?.message || err?.message || "Failed to cancel booking");
+    } finally {
+      setCancelling(false);
+    }
+  };
+
   if (loading) {
     return <div className="rounded-2xl bg-white p-6 shadow-sm text-slate-500">Loading booking details...</div>;
   }
@@ -87,6 +149,8 @@ export default function BookingDetailPage() {
 
   return (
     <div className="space-y-6">
+      {message && <div className="rounded-2xl bg-green-50 p-4 text-sm text-green-700 shadow-sm">{message}</div>}
+
       <section className="rounded-2xl bg-white p-6 shadow-sm">
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div>
@@ -96,7 +160,19 @@ export default function BookingDetailPage() {
               Created on {formatDate(booking.createdAt)} and last updated on {formatDate(booking.updatedAt)}.
             </p>
           </div>
-          <StatusBadge status={booking.status} />
+          <div className="flex flex-col items-start gap-3 md:items-end">
+            <StatusBadge status={booking.status} />
+            {canCancelBooking ? (
+              <button
+                type="button"
+                onClick={handleCancelBooking}
+                disabled={cancelling}
+                className="cursor-pointer rounded-xl border border-red-200 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {cancelling ? "Cancelling..." : "Cancel Booking"}
+              </button>
+            ) : null}
+          </div>
         </div>
       </section>
 
@@ -169,6 +245,8 @@ export default function BookingDetailPage() {
                     <p className="mt-1 text-sm text-slate-600">Quantity to transport: {request.quantityToTransport}</p>
                     <p className="mt-1 text-sm text-slate-600">Preferred pickup date: {formatShortDate(request.preferredPickupDate)}</p>
                     <p className="mt-1 text-sm text-slate-600">Transporter: {request.transporter?.fullName || "Not assigned yet"}</p>
+                    <p className="mt-1 text-sm text-slate-600">Transporter email: {request.transporter?.email || "Not assigned yet"}</p>
+                    <p className="mt-1 text-sm text-slate-600">Transporter phone: {request.transporter?.phoneNumber || "Not assigned yet"}</p>
                     <p className="mt-1 text-sm text-slate-600">Vehicle: {request.vehicle?.plateNumber || "Not assigned yet"}</p>
                     {request.notes && <p className="mt-2 text-sm text-slate-600">Notes: {request.notes}</p>}
                   </div>

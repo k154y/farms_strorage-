@@ -1,7 +1,8 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import GoogleMapsLocationPicker from "../../components/storage/GoogleMapsLocationPicker";
 import { createFacility } from "../../services/facilityService";
+import { getStorageManagerProfile } from "../../services/storageManagerProfileService";
 import { getUser } from "../../utilis/auth";
 
 const initialForm = {
@@ -19,9 +20,18 @@ const initialForm = {
 export default function AddFacilityPage() {
   const navigate = useNavigate();
   const user = getUser();
+  const [profileComplete, setProfileComplete] = useState(true);
+  const [loadingProfile, setLoadingProfile] = useState(true);
   const [form, setForm] = useState(initialForm);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    getStorageManagerProfile()
+      .then((data) => setProfileComplete(Boolean(data?.profileComplete)))
+      .catch(() => setProfileComplete(false))
+      .finally(() => setLoadingProfile(false));
+  }, []);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -62,6 +72,15 @@ export default function AddFacilityPage() {
       <p className="mt-2 text-slate-500">
         Register a new storage facility under your manager account. Google Maps location is optional.
       </p>
+
+      {!loadingProfile && !profileComplete ? (
+        <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          Complete your storage manager profile first before creating a facility.{" "}
+          <Link to="/storage/profile" className="font-semibold text-[#2d6a47]">
+            Go to profile
+          </Link>
+        </div>
+      ) : null}
 
       <form onSubmit={handleSubmit} className="mt-6 grid gap-4 md:grid-cols-2">
         <input
@@ -144,7 +163,7 @@ export default function AddFacilityPage() {
 
         <button
           type="submit"
-          disabled={submitting}
+          disabled={submitting || loadingProfile || !profileComplete}
           className="rounded-xl bg-[#47A369] px-4 py-3 font-semibold text-white md:col-span-2 disabled:opacity-60"
         >
           {submitting ? "Creating Facility..." : "Create Facility"}
