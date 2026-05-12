@@ -5,6 +5,8 @@ import com.agristorage.enums.PricingType;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -50,4 +52,7 @@ public class ColdRoom extends BaseEntity {
 
     @Column(nullable = false)
     private boolean active;
+
+    @Transient
+    private List<ProduceCategory> supportedCategories;
 }

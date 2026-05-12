@@ -56,7 +56,7 @@ export default function DashboardSidebar({ mobileOpen = false, onNavigate = () =
               <Link
                 key={item.path}
                 to={item.path}
-                className="block rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-[#47A369]/10 hover:text-[#304F3A]"
+                className="block cursor-pointer rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition duration-150 hover:-translate-y-0.5 hover:bg-[#47A369]/10 hover:text-[#304F3A] hover:shadow-sm"
               >
                 {item.label}
               </Link>
@@ -68,7 +68,7 @@ export default function DashboardSidebar({ mobileOpen = false, onNavigate = () =
               logout();
               window.location.href = "/login";
             }}
-            className="mt-6 rounded-lg bg-[#304F3A] px-4 py-2 text-sm font-semibold text-white"
+            className="mt-6 cursor-pointer rounded-lg bg-[#304F3A] px-4 py-2 text-sm font-semibold text-white transition duration-150 hover:-translate-y-0.5 hover:bg-[#223729] hover:shadow-md"
           >
             Logout
           </button>
@@ -95,7 +95,7 @@ export default function DashboardSidebar({ mobileOpen = false, onNavigate = () =
                     key={item.path}
                     to={item.path}
                     onClick={onNavigate}
-                    className="block rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-[#47A369]/10 hover:text-[#304F3A]"
+                    className="block cursor-pointer rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition duration-150 hover:-translate-y-0.5 hover:bg-[#47A369]/10 hover:text-[#304F3A] hover:shadow-sm"
                   >
                     {item.label}
                   </Link>
@@ -107,7 +107,7 @@ export default function DashboardSidebar({ mobileOpen = false, onNavigate = () =
                   logout();
                   window.location.href = "/login";
                 }}
-                className="mt-6 rounded-lg bg-[#304F3A] px-4 py-2 text-sm font-semibold text-white"
+                className="mt-6 cursor-pointer rounded-lg bg-[#304F3A] px-4 py-2 text-sm font-semibold text-white transition duration-150 hover:-translate-y-0.5 hover:bg-[#223729] hover:shadow-md"
               >
                 Logout
               </button>

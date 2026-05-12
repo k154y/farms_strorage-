@@ -14,8 +14,7 @@ export default function OrdersReceivedPage() {
 
   return (
     <div className="rounded-2xl bg-white p-6 shadow-sm">
-      <h2 className="text-2xl font-bold text-slate-900">Orders Received</h2>
-      <p className="mt-2 text-slate-500">Marketplace buyer requests for your product listings.</p>
+     
 
       {error && <div className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
 

@@ -40,6 +40,11 @@ public class NotificationController {
         notificationService.markAsRead(id);
     }
 
+    @DeleteMapping("/{id}")
+    public void deleteNotification(@PathVariable Long id) {
+        notificationService.deleteNotification(id);
+    }
+
     private Long getUserId(UserDetails userDetails, Long fallbackUserId) {
         if (userDetails != null) {
             return notificationService.getUserIdByEmail(userDetails.getUsername());

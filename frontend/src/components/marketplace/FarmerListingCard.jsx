@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Leaf, Package2, ShieldCheck } from "lucide-react";
+import { Edit3, Leaf, Package2, ShieldCheck, Trash2 } from "lucide-react";
 import { getListingImages } from "../../services/marketplaceService";
 
 function formatQuantity(value) {
@@ -11,7 +11,7 @@ function formatQuantity(value) {
   return Number.isInteger(Number(value)) ? Number(value) : Number(value).toFixed(1);
 }
 
-export default function ProductCard({ product }) {
+export default function FarmerListingCard({ product, onDelete, deleting = false }) {
   const [imageUrl, setImageUrl] = useState(product.imageUrl || "");
 
   useEffect(() => {
@@ -44,6 +44,9 @@ export default function ProductCard({ product }) {
           <Leaf className="h-3.5 w-3.5 text-[#2f855a]" />
           {product.produceCategory?.name || "Produce"}
         </div>
+        <div className="absolute right-4 top-4 rounded-full bg-slate-900/80 px-3 py-1.5 text-xs font-semibold text-white">
+          {product.status || "ACTIVE"}
+        </div>
       </div>
 
       <div className="p-5">
@@ -53,7 +56,7 @@ export default function ProductCard({ product }) {
               {product.name}
             </h3>
             <p className="mt-1 text-sm text-slate-500">
-              by {product.farmer?.fullName || "Farmer listing"}
+              Booking #{product.booking?.id || "N/A"}
             </p>
           </div>
           <p className="text-lg font-semibold text-[#2f855a]">
@@ -67,7 +70,7 @@ export default function ProductCard({ product }) {
           </p>
         ) : (
           <p className="mt-4 text-sm leading-6 text-slate-500">
-            Fresh produce listing ready for buyer requests.
+            Your marketplace listing is ready and visible based on its current status.
           </p>
         )}
 
@@ -94,18 +97,21 @@ export default function ProductCard({ product }) {
 
         <div className="mt-5 flex gap-3">
           <Link
-            to={`/marketplace/${product.id}`}
-            className="flex-1 cursor-pointer rounded-xl border border-slate-200 px-4 py-3 text-center text-sm font-semibold text-slate-700 transition duration-150 hover:-translate-y-0.5 hover:border-[#2f855a]/30 hover:text-[#2f855a] hover:shadow-sm"
+            to={`/farmer/listings/${product.id}/edit`}
+            className="inline-flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-3 text-center text-sm font-semibold text-slate-700 transition duration-150 hover:-translate-y-0.5 hover:border-[#2f855a]/30 hover:text-[#2f855a] hover:shadow-sm"
           >
-            View Details
+            <Edit3 className="h-4 w-4" />
+            Edit Details
           </Link>
-          <Link
-            to={`/marketplace/${product.id}`}
-            className="inline-flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#2f855a] px-4 py-3 text-sm font-semibold text-white shadow-[0_16px_32px_rgba(47,133,90,0.22)] transition duration-150 hover:-translate-y-0.5 hover:bg-[#276e4b] hover:shadow-[0_20px_36px_rgba(47,133,90,0.28)]"
+          <button
+            type="button"
+            onClick={() => onDelete(product.id)}
+            disabled={deleting}
+            className="inline-flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-red-600 px-4 py-3 text-sm font-semibold text-white transition duration-150 hover:-translate-y-0.5 hover:bg-red-700 hover:shadow-md disabled:opacity-60"
           >
-            Request Order
-            <ArrowRight className="h-4 w-4" />
-          </Link>
+            <Trash2 className="h-4 w-4" />
+            {deleting ? "Deleting..." : "Delete"}
+          </button>
         </div>
       </div>
     </div>

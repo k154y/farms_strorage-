@@ -12,7 +12,12 @@ import com.agristorage.repository.storage.ProduceCategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -43,16 +48,19 @@ public class ColdRoomService {
                 .active(request.getActive() != null ? request.getActive() : true)
                 .build();
 
-        return coldRoomRepository.save(coldRoom);
+        ColdRoom savedColdRoom = coldRoomRepository.save(coldRoom);
+        syncSupportedCategories(savedColdRoom, request.getSupportedCategoryIds());
+        return attachSupportedCategories(savedColdRoom);
     }
 
     public List<ColdRoom> getAllColdRooms() {
-        return coldRoomRepository.findAll();
+        return attachSupportedCategories(coldRoomRepository.findAll());
     }
 
     public ColdRoom getColdRoomById(Long id) {
-        return coldRoomRepository.findById(id)
+        ColdRoom coldRoom = coldRoomRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Cold room not found with id: " + id));
+        return attachSupportedCategories(coldRoom);
     }
 
     public ColdRoom updateColdRoom(Long id, UpdateColdRoomRequest request) {
@@ -75,7 +83,9 @@ public class ColdRoomService {
             coldRoom.setActive(request.getActive());
         }
 
-        return coldRoomRepository.save(coldRoom);
+        ColdRoom updatedColdRoom = coldRoomRepository.save(coldRoom);
+        syncSupportedCategories(updatedColdRoom, request.getSupportedCategoryIds());
+        return attachSupportedCategories(updatedColdRoom);
     }
 
     public void deleteColdRoom(Long id) {
@@ -105,5 +115,69 @@ public class ColdRoomService {
     public List<ColdRoomSupportedCategory> getColdRoomSupportedCategories(Long coldRoomId) {
         getColdRoomById(coldRoomId);
         return coldRoomSupportedCategoryRepository.findByColdRoomId(coldRoomId);
+    }
+
+    private void syncSupportedCategories(ColdRoom coldRoom, List<Long> categoryIds) {
+        if (categoryIds == null || categoryIds.isEmpty()) {
+            coldRoomSupportedCategoryRepository.deleteByColdRoomId(coldRoom.getId());
+            coldRoom.setSupportedCategories(Collections.emptyList());
+            return;
+        }
+
+        List<Long> uniqueCategoryIds = new ArrayList<>(new LinkedHashSet<>(categoryIds));
+        List<ProduceCategory> categories = produceCategoryRepository.findAllById(uniqueCategoryIds);
+
+        if (categories.size() != uniqueCategoryIds.size()) {
+            throw new RuntimeException("One or more selected produce categories were not found");
+        }
+
+        coldRoomSupportedCategoryRepository.deleteByColdRoomId(coldRoom.getId());
+
+        List<ColdRoomSupportedCategory> supportedCategories = categories.stream()
+                .map(category -> ColdRoomSupportedCategory.builder()
+                        .coldRoom(coldRoom)
+                        .produceCategory(category)
+                        .build())
+                .toList();
+
+        coldRoomSupportedCategoryRepository.saveAll(supportedCategories);
+        coldRoom.setSupportedCategories(categories);
+    }
+
+    private List<ColdRoom> attachSupportedCategories(List<ColdRoom> coldRooms) {
+        if (coldRooms == null || coldRooms.isEmpty()) {
+            return coldRooms;
+        }
+
+        List<Long> coldRoomIds = coldRooms.stream()
+                .map(ColdRoom::getId)
+                .toList();
+
+        Map<Long, List<ProduceCategory>> supportedCategoriesByRoomId =
+                coldRoomSupportedCategoryRepository.findByColdRoomIdIn(coldRoomIds).stream()
+                        .collect(Collectors.groupingBy(
+                                item -> item.getColdRoom().getId(),
+                                Collectors.mapping(ColdRoomSupportedCategory::getProduceCategory, Collectors.toList())
+                        ));
+
+        coldRooms.forEach(room -> room.setSupportedCategories(
+                supportedCategoriesByRoomId.getOrDefault(room.getId(), Collections.emptyList())
+        ));
+
+        return coldRooms;
+    }
+
+    private ColdRoom attachSupportedCategories(ColdRoom coldRoom) {
+        if (coldRoom == null) {
+            return null;
+        }
+
+        coldRoom.setSupportedCategories(
+                coldRoomSupportedCategoryRepository.findByColdRoomId(coldRoom.getId()).stream()
+                        .map(ColdRoomSupportedCategory::getProduceCategory)
+                        .toList()
+        );
+
+        return coldRoom;
     }
 }

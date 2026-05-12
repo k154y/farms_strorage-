@@ -16,6 +16,7 @@ import com.agristorage.enums.TransportRequestStatus;
 import com.agristorage.repository.booking.BookingRepository;
 import com.agristorage.repository.booking.BookingStatusHistoryRepository;
 import com.agristorage.repository.storage.ColdRoomRepository;
+import com.agristorage.repository.storage.ColdRoomSupportedCategoryRepository;
 import com.agristorage.repository.storage.ProduceCategoryRepository;
 import com.agristorage.repository.storage.StorageFacilityRepository;
 import com.agristorage.repository.transport.TransportRequestRepository;
@@ -38,6 +39,7 @@ public class BookingService {
     private final UserRepository userRepository;
     private final StorageFacilityRepository facilityRepository;
     private final ColdRoomRepository coldRoomRepository;
+    private final ColdRoomSupportedCategoryRepository coldRoomSupportedCategoryRepository;
     private final ProduceCategoryRepository categoryRepository;
     private final TransportRequestRepository transportRequestRepository;
     private final TransportStatusHistoryRepository transportStatusHistoryRepository;
@@ -67,6 +69,14 @@ public class BookingService {
         ProduceCategory category = categoryRepository.findById(request.getProduceCategoryId())
                 .orElseThrow(() -> new RuntimeException("Produce category not found"));
 
+        boolean roomSupportsCategory = coldRoomSupportedCategoryRepository
+                .findByColdRoomIdAndProduceCategoryId(coldRoom.getId(), category.getId())
+                .isPresent();
+
+        if (!roomSupportsCategory) {
+            throw new RuntimeException("Selected cold room does not support this produce type");
+        }
+
         if (request.getQuantity() > coldRoom.getAvailableCapacity()) {
             throw new RuntimeException("Not enough available capacity");
         }
@@ -84,7 +94,19 @@ public class BookingService {
                 .status(BookingStatus.PENDING)
                 .build();
 
-        return bookingRepository.save(booking);
+        Booking savedBooking = bookingRepository.save(booking);
+
+        if (facility.getManager() != null) {
+            notificationService.createNotification(
+                    facility.getManager().getId(),
+                    "New Booking Request",
+                    "Farmer " + farmer.getFullName() + " submitted booking #" + savedBooking.getId()
+                            + " for " + facility.getName() + " (" + coldRoom.getName() + ").",
+                    "GENERAL"
+            );
+        }
+
+        return savedBooking;
     }
 
     // GET ALL

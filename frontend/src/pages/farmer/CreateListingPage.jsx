@@ -5,6 +5,8 @@ import { getProduceCategories } from "../../services/facilityService";
 import { createListing, uploadListingImage } from "../../services/marketplaceService";
 import { getUser } from "../../utilis/auth";
 
+const MAX_LISTING_IMAGE_SIZE_MB = 10;
+
 const initialForm = {
   bookingId: "",
   produceCategoryId: "",
@@ -47,6 +49,12 @@ export default function CreateListingPage() {
     setSubmitting(true);
     setError("");
 
+    if (imageFile && imageFile.size > MAX_LISTING_IMAGE_SIZE_MB * 1024 * 1024) {
+      setError(`Listing image must be ${MAX_LISTING_IMAGE_SIZE_MB}MB or smaller.`);
+      setSubmitting(false);
+      return;
+    }
+
     try {
       const listing = await createListing({
         farmerId: user?.id,
@@ -79,10 +87,7 @@ export default function CreateListingPage() {
 
   return (
     <div className="rounded-2xl bg-white p-6 shadow-sm">
-      <h2 className="text-2xl font-bold text-slate-900">Create Listing</h2>
-      <p className="mt-2 text-slate-500">
-        Add a produce listing so it becomes visible on the marketplace.
-      </p>
+   
 
       <form onSubmit={handleSubmit} className="mt-6 grid gap-4 md:grid-cols-2">
         <select
@@ -136,6 +141,9 @@ export default function CreateListingPage() {
             onChange={(event) => setImageFile(event.target.files?.[0] || null)}
             className="rounded-xl border border-slate-300 px-4 py-3"
           />
+          <span className="text-xs text-slate-500">
+            Maximum image size: {MAX_LISTING_IMAGE_SIZE_MB}MB.
+          </span>
         </label>
         <input
           name="quantityAvailable"
@@ -196,7 +204,7 @@ export default function CreateListingPage() {
         <button
           type="submit"
           disabled={submitting}
-          className="rounded-xl bg-[#47A369] px-4 py-3 font-semibold text-white md:col-span-2 disabled:opacity-60"
+          className="cursor-pointer rounded-xl bg-[#47A369] px-4 py-3 font-semibold text-white transition hover:bg-[#3b8a58] hover:shadow-md md:col-span-2 disabled:opacity-60"
         >
           {submitting ? "Creating Listing..." : "Create Listing"}
         </button>

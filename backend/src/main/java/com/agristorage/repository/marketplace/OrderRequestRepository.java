@@ -12,4 +12,6 @@ public interface OrderRequestRepository extends JpaRepository<OrderRequest, Long
     List<OrderRequest> findByProductListingFarmerId(Long farmerId);
 
     List<OrderRequest> findByStatus(OrderRequestStatus status);
+
+    void deleteByProductListingId(Long productListingId);
 }

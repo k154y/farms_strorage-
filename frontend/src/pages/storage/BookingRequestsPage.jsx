@@ -5,19 +5,19 @@ import { getUser } from "../../utilis/auth";
 
 const statusActionsByCurrentStatus = {
   PENDING: [
-    { label: "Approve", status: "APPROVED", className: "bg-[#47A369] text-white" },
-    { label: "Reject", status: "REJECTED", className: "bg-red-600 text-white" },
-    { label: "Cancel", status: "CANCELLED", className: "bg-slate-600 text-white" },
+    { label: "Approve", status: "APPROVED", className: "bg-[#47A369] text-white hover:bg-[#3b8a58]" },
+    { label: "Reject", status: "REJECTED", className: "bg-red-600 text-white hover:bg-red-700" },
+    { label: "Cancel", status: "CANCELLED", className: "bg-slate-600 text-white hover:bg-slate-700" },
   ],
   APPROVED: [
-    { label: "Delivered", status: "DELIVERED", className: "bg-blue-600 text-white" },
-    { label: "Cancel", status: "CANCELLED", className: "bg-slate-600 text-white" },
+    { label: "Delivered", status: "DELIVERED", className: "bg-blue-600 text-white hover:bg-blue-700" },
+    { label: "Cancel", status: "CANCELLED", className: "bg-slate-600 text-white hover:bg-slate-700" },
   ],
   DELIVERED: [
-    { label: "In Storage", status: "IN_STORAGE", className: "bg-violet-600 text-white" },
+    { label: "In Storage", status: "IN_STORAGE", className: "bg-violet-600 text-white hover:bg-violet-700" },
   ],
   IN_STORAGE: [
-    { label: "Complete", status: "COMPLETED", className: "bg-emerald-600 text-white" },
+    { label: "Complete", status: "COMPLETED", className: "bg-emerald-600 text-white hover:bg-emerald-700" },
   ],
 };
 
@@ -84,7 +84,7 @@ export default function BookingRequestsPage() {
                       <button
                         key={action.status}
                         onClick={() => handleStatusChange(item.id, action.status)}
-                        className={`rounded-lg px-3 py-2 text-xs font-semibold ${action.className}`}
+                        className={`cursor-pointer rounded-lg px-3 py-2 text-xs font-semibold shadow-sm transition duration-150 hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#47A369] ${action.className}`}
                       >
                         {action.label}
                       </button>

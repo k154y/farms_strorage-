@@ -1,5 +1,6 @@
 package com.agristorage.entity.storage;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -17,6 +18,7 @@ public class ColdRoomSupportedCategory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @JsonIgnore
     @ManyToOne(optional = false)
     @JoinColumn(name = "cold_room_id", nullable = false)
     private ColdRoom coldRoom;

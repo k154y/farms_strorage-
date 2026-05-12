@@ -22,6 +22,7 @@ import BookingDetailPage from "../pages/farmer/BookingDetailPage";
 import FarmerCreateBookingPage from "../pages/farmer/FarmerCreateBookingPage";
 import MyListingsPage from "../pages/farmer/MyListingsPage";
 import CreateListingPage from "../pages/farmer/CreateListingPage";
+import EditListingPage from "../pages/farmer/EditListingPage";
 import OrdersReceivedPage from "../pages/farmer/OrdersReceivedPage";
 import FarmerNotificationsPage from "../pages/farmer/FarmerNotificationsPage";
 import FarmerProfilePage from "../pages/farmer/FarmerProfilePage";
@@ -77,6 +78,7 @@ export default function AppRoutes() {
             <Route path="/farmer/bookings/:id" element={<BookingDetailPage />} />
             <Route path="/farmer/listings" element={<MyListingsPage />} />
             <Route path="/farmer/listings/create" element={<CreateListingPage />} />
+            <Route path="/farmer/listings/:id/edit" element={<EditListingPage />} />
             <Route path="/farmer/orders" element={<OrdersReceivedPage />} />
             <Route path="/farmer/notifications" element={<FarmerNotificationsPage />} />
             <Route path="/farmer/profile" element={<FarmerProfilePage />} />
