@@ -79,12 +79,16 @@ export default function DashboardTopbar({ title, subtitle, onMenuToggle }) {
         <button
           type="button"
           onClick={() => navigate(notificationPath)}
-          className="relative rounded-full border border-slate-200 p-2 text-slate-600 transition hover:border-[#47A369] hover:text-[#47A369]"
+          className={`relative rounded-full border p-2 transition ${
+            unreadCount > 0
+              ? "border-red-200 bg-red-50 text-red-600 hover:border-red-300 hover:text-red-700"
+              : "border-slate-200 text-slate-600 hover:border-[#47A369] hover:text-[#47A369]"
+          }`}
           aria-label="Open notifications"
         >
           <Bell size={18} />
           {unreadCount > 0 && (
-            <span className="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-[#47A369] px-1.5 text-[10px] font-bold text-white">
+            <span className="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 text-[10px] font-bold text-white">
               {unreadCount > 99 ? "99+" : unreadCount}
             </span>
           )}

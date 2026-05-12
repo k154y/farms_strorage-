@@ -1,11 +1,12 @@
 import { Outlet, useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import DashboardSidebar from "../components/layout/Sidebar";
 import DashboardTopbar from "../components/layout/DashboardTopbar";
 
 const titleMap = {
   "/farmer/dashboard": ["Farmer Dashboard", "Manage bookings, listings, and orders"],
   "/farmer/bookings": ["My Bookings", "Review your storage booking history and status"],
+  "/farmer/findstorage": ["Find Storage", "Browse facilities, compare rooms, and book faster from your account"],
   "/farmer/bookings/create": ["Create Booking", "Find available storage and submit a new request"],
   "/farmer/listings": ["My Listings", "Track and manage your marketplace produce listings"],
   "/farmer/listings/create": ["Create Listing", "Add a new produce listing for marketplace buyers"],
@@ -39,10 +40,6 @@ export default function DashboardLayout() {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [title, subtitle] = titleMap[location.pathname] || ["Dashboard", ""];
-
-  useEffect(() => {
-    setMobileOpen(false);
-  }, [location.pathname]);
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50">

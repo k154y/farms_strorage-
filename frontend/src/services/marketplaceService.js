@@ -16,6 +16,16 @@ export const createListing = async (payload) => {
   return data;
 };
 
+export const deleteListing = async (listingId) => {
+  const { data } = await api.delete(`/api/marketplace/listings/${listingId}`);
+  return data;
+};
+
+export const updateListing = async (listingId, payload) => {
+  const { data } = await api.put(`/api/marketplace/listings/${listingId}`, payload);
+  return data;
+};
+
 export const uploadListingImage = async ({ listingId, file }) => {
   const formData = new FormData();
   formData.append("file", file);

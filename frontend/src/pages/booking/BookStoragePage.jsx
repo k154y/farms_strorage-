@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { getColdRooms, getFacilities, getFacilityPhotos } from "../../services/facilityService";
 import { getUsers } from "../../services/userService";
 import { hasGoogleMapsKey, loadGoogleMaps } from "../../utilis/googleMaps";
@@ -27,6 +27,7 @@ function getDistanceKm(from, to) {
 
 export default function BookStoragePage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const mapRef = useRef(null);
   const [facilities, setFacilities] = useState([]);
   const [coldRooms, setColdRooms] = useState([]);
@@ -40,6 +41,7 @@ export default function BookStoragePage() {
   const [locationStatus, setLocationStatus] = useState("");
   const [selectedFacilityId, setSelectedFacilityId] = useState(null);
   const [mapsError, setMapsError] = useState("");
+  const isDashboardView = location.pathname.startsWith("/farmer/");
 
   useEffect(() => {
     Promise.all([getFacilities(), getColdRooms(), getUsers({ role: "STORAGE_MANAGER", status: "ACTIVE" })])
@@ -152,20 +154,22 @@ export default function BookStoragePage() {
     });
   }, [district, sector, searchTerm, nearMeOnly, radiusKm, facilitiesWithDistance, userLocation]);
 
-  useEffect(() => {
+  const effectiveSelectedFacilityId = useMemo(() => {
     if (!filteredFacilities.length) {
-      setSelectedFacilityId(null);
-      return;
+      return null;
     }
 
-    if (!filteredFacilities.some((facility) => facility.id === selectedFacilityId)) {
-      setSelectedFacilityId(filteredFacilities[0].id);
-    }
+    return filteredFacilities.some((facility) => facility.id === selectedFacilityId)
+      ? selectedFacilityId
+      : filteredFacilities[0].id;
   }, [filteredFacilities, selectedFacilityId]);
 
   const selectedFacility = useMemo(
-    () => filteredFacilities.find((facility) => facility.id === selectedFacilityId) || filteredFacilities[0] || null,
-    [filteredFacilities, selectedFacilityId]
+    () =>
+      filteredFacilities.find((facility) => facility.id === effectiveSelectedFacilityId) ||
+      filteredFacilities[0] ||
+      null,
+    [effectiveSelectedFacilityId, filteredFacilities]
   );
 
   useEffect(() => {
@@ -270,21 +274,64 @@ export default function BookStoragePage() {
     navigate(`/farmer/bookings/create?facilityId=${selectedFacility.id}`);
   };
 
+  const totalVisibleCapacity = filteredFacilities.reduce(
+    (sum, facility) => sum + (Number(facility.totalAvailableCapacity) || 0),
+    0
+  );
+
+  const mappedFacilityCount = filteredFacilities.filter(
+    (facility) => facility.latitude != null && facility.longitude != null
+  ).length;
+
   return (
-    <div className="min-h-screen bg-[linear-gradient(180deg,#eef8f0_0%,#f8fafc_38%,#ffffff_100%)]">
-      <div className="mx-auto max-w-7xl px-6 py-12">
-        <div className="max-w-3xl">
-          <p className="text-sm font-semibold uppercase tracking-[0.25em] text-[#47A369]">Public Storage Search</p>
-          <h1 className="mt-3 text-3xl font-black tracking-tight text-slate-900 md:text-6xl">
+    <div
+      className={
+        isDashboardView
+          ? "space-y-8"
+          : "min-h-screen bg-[linear-gradient(180deg,#eef8f0_0%,#f8fafc_38%,#ffffff_100%)]"
+      }
+    >
+      <div className={isDashboardView ? "space-y-8" : "mx-auto max-w-7xl px-6 py-12"}>
+        <div
+          className={
+            isDashboardView
+              ? "overflow-hidden rounded-[2rem] border border-[#d8eadc] bg-[radial-gradient(circle_at_top_left,_rgba(71,163,105,0.18),_transparent_34%),linear-gradient(135deg,#f8fff9_0%,#eef8f0_48%,#ffffff_100%)] p-8 shadow-[0_20px_70px_rgba(48,79,58,0.08)]"
+              : "max-w-3xl"
+          }
+        >
+          <p className="text-sm font-semibold uppercase tracking-[0.25em] text-[#47A369]">
+            {isDashboardView ? "Farmer Storage Search" : "Public Storage Search"}
+          </p>
+          <h1 className={`mt-3 font-black tracking-tight text-slate-900 ${isDashboardView ? "text-4xl md:text-5xl" : "text-3xl md:text-6xl"}`}>
             Find the Right Storage
           </h1>
-          <p className="mt-4 text-lg text-slate-600">
-            Explore storage facilities, compare rooms, check available capacity, and view the facility location on an interactive map. You only need to log in when you are ready to book.
+          <p className={`mt-4 text-slate-600 ${isDashboardView ? "max-w-4xl text-base md:text-lg" : "text-lg"}`}>
+            Explore storage facilities, compare rooms, check available capacity, and view the facility location on an interactive map.
+            {isDashboardView
+              ? " This in-account view is optimized for quick booking decisions and farmer workflows."
+              : " You only need to log in when you are ready to book."}
           </p>
+
+          {isDashboardView ? (
+            <div className="mt-6 grid gap-4 md:grid-cols-3">
+              <div className="rounded-2xl bg-white/80 p-5 shadow-sm ring-1 ring-[#dcebdd]">
+                <p className="text-sm text-slate-500">Visible Facilities</p>
+                <p className="mt-2 text-3xl font-black text-slate-900">{filteredFacilities.length}</p>
+              </div>
+              <div className="rounded-2xl bg-white/80 p-5 shadow-sm ring-1 ring-[#dcebdd]">
+                <p className="text-sm text-slate-500">Available Capacity</p>
+                <p className="mt-2 text-3xl font-black text-slate-900">{totalVisibleCapacity}</p>
+              </div>
+              <div className="rounded-2xl bg-white/80 p-5 shadow-sm ring-1 ring-[#dcebdd]">
+                <p className="text-sm text-slate-500">Mapped Facilities</p>
+                <p className="mt-2 text-3xl font-black text-slate-900">{mappedFacilityCount}</p>
+              </div>
+            </div>
+          ) : null}
         </div>
 
-        <div className="mt-10 grid gap-6 xl:grid-cols-[360px_1fr]">
-          <aside className="space-y-6">
+        <div className={`${isDashboardView ? "grid gap-6 xl:grid-cols-[380px_minmax(0,1fr)]" : "mt-10 grid gap-6 xl:grid-cols-[360px_1fr]"}`}>
+          <aside className={`space-y-6 ${isDashboardView ? "xl:sticky xl:top-8 self-start" : ""}`}>
             <div className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur">
               <h2 className="text-lg font-semibold text-slate-900">Filter Facilities</h2>
               <div className="mt-5 space-y-4">
@@ -375,7 +422,7 @@ export default function BookStoragePage() {
               </div>
             </div>
 
-            <div className="space-y-4">
+            <div className={`space-y-4 ${isDashboardView ? "max-h-[calc(100vh-15rem)] overflow-y-auto pr-1" : ""}`}>
               {filteredFacilities.map((facility) => (
                 <button
                   key={facility.id}
@@ -415,7 +462,7 @@ export default function BookStoragePage() {
             </div>
           </aside>
 
-          <section>
+          <section className="min-w-0">
             {!selectedFacility ? (
               <div className="rounded-3xl border border-dashed border-slate-300 bg-white px-8 py-20 text-center text-slate-500">
                 No storage facilities matched your current filters.
@@ -431,7 +478,7 @@ export default function BookStoragePage() {
                     alt={selectedFacility.name}
                     className="h-72 w-full object-cover md:h-96"
                   />
-                  <div className="grid gap-8 p-8 lg:grid-cols-[1.3fr_0.7fr]">
+                  <div className={`grid gap-8 p-8 ${isDashboardView ? "2xl:grid-cols-[1.45fr_0.75fr]" : "lg:grid-cols-[1.3fr_0.7fr]"}`}>
                     <div>
                       <div className="flex flex-wrap items-start justify-between gap-4">
                         <div>

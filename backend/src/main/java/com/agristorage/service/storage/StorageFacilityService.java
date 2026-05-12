@@ -5,11 +5,13 @@ import com.agristorage.dto.request.UpdateStorageFacilityRequest;
 import com.agristorage.entity.storage.FacilitySupportedCategory;
 import com.agristorage.entity.storage.ProduceCategory;
 import com.agristorage.entity.storage.StorageFacility;
+import com.agristorage.entity.user.StorageManagerProfile;
 import com.agristorage.entity.user.User;
 import com.agristorage.enums.Role;
 import com.agristorage.repository.storage.FacilitySupportedCategoryRepository;
 import com.agristorage.repository.storage.ProduceCategoryRepository;
 import com.agristorage.repository.storage.StorageFacilityRepository;
+import com.agristorage.repository.user.StorageManagerProfileRepository;
 import com.agristorage.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,7 @@ public class StorageFacilityService {
     private final UserRepository userRepository;
     private final ProduceCategoryRepository produceCategoryRepository;
     private final FacilitySupportedCategoryRepository facilitySupportedCategoryRepository;
+    private final StorageManagerProfileRepository storageManagerProfileRepository;
 
     public StorageFacility createFacility(CreateStorageFacilityRequest request) {
         User manager = userRepository.findById(request.getManagerId())
@@ -31,6 +34,13 @@ public class StorageFacilityService {
 
         if (manager.getRole() != Role.STORAGE_MANAGER) {
             throw new RuntimeException("User is not a storage manager");
+        }
+
+        StorageManagerProfile profile = storageManagerProfileRepository.findByUser(manager)
+                .orElseThrow(() -> new RuntimeException("Storage manager profile not found"));
+
+        if (!isProfileComplete(profile)) {
+            throw new RuntimeException("Complete your storage manager profile before creating a facility.");
         }
 
         StorageFacility facility = StorageFacility.builder()
@@ -106,5 +116,17 @@ public class StorageFacilityService {
     public List<FacilitySupportedCategory> getFacilitySupportedCategories(Long facilityId) {
         getFacilityById(facilityId);
         return facilitySupportedCategoryRepository.findByFacilityId(facilityId);
+    }
+
+    private boolean isProfileComplete(StorageManagerProfile profile) {
+        return hasText(profile.getBusinessName())
+                && hasText(profile.getOwnerName())
+                && hasText(profile.getDistrict())
+                && hasText(profile.getSector())
+                && hasText(profile.getContactPhone());
+    }
+
+    private boolean hasText(String value) {
+        return value != null && !value.trim().isEmpty();
     }
 }

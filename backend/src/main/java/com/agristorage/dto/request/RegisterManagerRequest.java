@@ -22,7 +22,6 @@ public class RegisterManagerRequest {
     @NotBlank(message = "Password is required")
     private String password;
 
-    @NotBlank(message = "Business name is required")
     private String businessName;
 
     private String rdbRegistrationNumber;

@@ -18,7 +18,7 @@ public class SecurityBeansConfig {
 
     @Bean
     public UserDetailsService userDetailsService(UserRepository userRepository) {
-        return username -> userRepository.findByEmail(username)
+        return username -> userRepository.findByEmailIgnoreCase(username)
                 .map(user -> {
                     String[] roles = {user.getRole().name()};
                     return (UserDetails) org.springframework.security.core.userdetails.User

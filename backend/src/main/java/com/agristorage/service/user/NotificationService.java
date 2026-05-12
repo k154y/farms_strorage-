@@ -55,6 +55,12 @@ public class NotificationService {
         notificationRepository.save(notification);
     }
 
+    public void deleteNotification(Long notificationId) {
+        Notification notification = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new RuntimeException("Notification not found"));
+        notificationRepository.delete(notification);
+    }
+
     // Helper to get userId from email
     public Long getUserIdByEmail(String email) {
         return userRepository.findByEmail(email)

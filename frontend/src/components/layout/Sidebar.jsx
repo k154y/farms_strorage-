@@ -49,18 +49,14 @@ export default function DashboardSidebar({ mobileOpen = false, onNavigate = () =
       <aside className="hidden h-screen w-72 shrink-0 border-r border-slate-200 bg-white md:flex md:flex-col">
         <div className="flex h-full min-h-0 flex-col p-6">
           <div className="mb-8 text-2xl font-bold text-[#304F3A]">ColdChain</div>
-          <div className="mb-6 rounded-xl bg-slate-50 p-4">
-            <p className="text-sm text-slate-500">Logged in as</p>
-            <p className="font-semibold text-slate-900">{user?.fullName || "User"}</p>
-            <p className="text-sm text-[#47A369]">{user?.role}</p>
-          </div>
+         
 
           <nav className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
             {links.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
-                className="block rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-[#47A369]/10 hover:text-[#304F3A]"
+                className="block cursor-pointer rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition duration-150 hover:-translate-y-0.5 hover:bg-[#47A369]/10 hover:text-[#304F3A] hover:shadow-sm"
               >
                 {item.label}
               </Link>
@@ -72,7 +68,7 @@ export default function DashboardSidebar({ mobileOpen = false, onNavigate = () =
               logout();
               window.location.href = "/login";
             }}
-            className="mt-6 rounded-lg bg-[#304F3A] px-4 py-2 text-sm font-semibold text-white"
+            className="mt-6 cursor-pointer rounded-lg bg-[#304F3A] px-4 py-2 text-sm font-semibold text-white transition duration-150 hover:-translate-y-0.5 hover:bg-[#223729] hover:shadow-md"
           >
             Logout
           </button>
@@ -99,7 +95,7 @@ export default function DashboardSidebar({ mobileOpen = false, onNavigate = () =
                     key={item.path}
                     to={item.path}
                     onClick={onNavigate}
-                    className="block rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-[#47A369]/10 hover:text-[#304F3A]"
+                    className="block cursor-pointer rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition duration-150 hover:-translate-y-0.5 hover:bg-[#47A369]/10 hover:text-[#304F3A] hover:shadow-sm"
                   >
                     {item.label}
                   </Link>
@@ -111,7 +107,7 @@ export default function DashboardSidebar({ mobileOpen = false, onNavigate = () =
                   logout();
                   window.location.href = "/login";
                 }}
-                className="mt-6 rounded-lg bg-[#304F3A] px-4 py-2 text-sm font-semibold text-white"
+                className="mt-6 cursor-pointer rounded-lg bg-[#304F3A] px-4 py-2 text-sm font-semibold text-white transition duration-150 hover:-translate-y-0.5 hover:bg-[#223729] hover:shadow-md"
               >
                 Logout
               </button>

@@ -99,7 +99,7 @@ export default function FarmerCreateBookingPage() {
         setApprovedStorageManagerIds(managerIds);
         setFacilities(visibleFacilities);
         setColdRooms(visibleRooms);
-        setCategories((categoryData?.data || []).filter((category) => category.active));
+        setCategories((categoryData?.data || categoryData || []).filter((category) => category.active));
         setFarmLocations(farmerProfile?.locations || []);
         if (requestedFacilityId && visibleFacilities.some((facility) => String(facility.id) === requestedFacilityId)) {
           const matchedFacility = visibleFacilities.find(
@@ -141,6 +141,26 @@ export default function FarmerCreateBookingPage() {
     [coldRooms, form.coldRoomId]
   );
 
+  const selectedFacilitySupportedCategories = useMemo(() => {
+    if (!form.facilityId) {
+      return categories;
+    }
+
+    const categoryMap = new Map();
+
+    coldRooms
+      .filter((room) => String(room.facility?.id) === form.facilityId)
+      .forEach((room) => {
+        (room.supportedCategories || []).forEach((category) => {
+          if (category?.active !== false) {
+            categoryMap.set(String(category.id), category);
+          }
+        });
+      });
+
+    return Array.from(categoryMap.values()).sort((left, right) => left.name.localeCompare(right.name));
+  }, [categories, coldRooms, form.facilityId]);
+
   const selectedFarmLocation = useMemo(() => {
     if (!farmLocations.length) {
       return null;
@@ -154,7 +174,14 @@ export default function FarmerCreateBookingPage() {
   const facilityInsights = useMemo(
     () =>
       facilities.map((facility) => {
-        const facilityRooms = coldRooms.filter((room) => room.facility?.id === facility.id);
+        const facilityRooms = coldRooms
+          .filter((room) => room.facility?.id === facility.id)
+          .filter((room) =>
+            !form.produceCategoryId ||
+            (room.supportedCategories || []).some(
+              (category) => String(category.id) === form.produceCategoryId
+            )
+          );
         const bestPrice = facilityRooms.length
           ? Math.min(...facilityRooms.map((room) => Number(room.pricePerUnit) || 0))
           : null;
@@ -182,12 +209,16 @@ export default function FarmerCreateBookingPage() {
           score,
         };
       }),
-    [coldRooms, facilities, selectedFarmLocation]
+    [coldRooms, facilities, form.produceCategoryId, selectedFarmLocation]
   );
 
   const suggestedFacilities = useMemo(() => {
     return facilityInsights
       .filter((facility) => {
+        if (facility.rooms.length === 0) {
+          return false;
+        }
+
         const districtMatch =
           !form.districtFilter ||
           facility.district?.toLowerCase().includes(form.districtFilter.trim().toLowerCase());
@@ -214,9 +245,30 @@ export default function FarmerCreateBookingPage() {
 
     return coldRooms
       .filter((room) => String(room.facility?.id) === form.facilityId)
+      .filter((room) =>
+        !form.produceCategoryId ||
+        (room.supportedCategories || []).some(
+          (category) => String(category.id) === form.produceCategoryId
+        )
+      )
       .filter((room) => !quantity || Number(room.availableCapacity) >= quantity)
       .sort((left, right) => Number(left.pricePerUnit) - Number(right.pricePerUnit));
-  }, [coldRooms, form.facilityId, form.quantity]);
+  }, [coldRooms, form.facilityId, form.produceCategoryId, form.quantity]);
+
+  useEffect(() => {
+    if (
+      form.produceCategoryId &&
+      !selectedFacilitySupportedCategories.some(
+        (category) => String(category.id) === form.produceCategoryId
+      )
+    ) {
+      setForm((current) => ({
+        ...current,
+        produceCategoryId: "",
+        coldRoomId: "",
+      }));
+    }
+  }, [form.produceCategoryId, selectedFacilitySupportedCategories]);
 
   useEffect(() => {
     if (!needsTransport) {
@@ -259,7 +311,22 @@ export default function FarmerCreateBookingPage() {
           ? [facility.name, facility.address, facility.district].filter(Boolean).join(", ")
           : "";
 
-        return { ...current, facilityId: value, coldRoomId: "", destinationLocation };
+        const supportedCategories = new Set(
+          coldRooms
+            .filter((room) => String(room.facility?.id) === value)
+            .flatMap((room) => room.supportedCategories || [])
+            .map((category) => String(category.id))
+        );
+        const keepCurrentCategory =
+          !current.produceCategoryId || supportedCategories.has(current.produceCategoryId);
+
+        return {
+          ...current,
+          facilityId: value,
+          coldRoomId: "",
+          produceCategoryId: keepCurrentCategory ? current.produceCategoryId : "",
+          destinationLocation,
+        };
       }
 
       if (name === "farmLocationId") {
@@ -445,7 +512,7 @@ export default function FarmerCreateBookingPage() {
                 required
               >
                 <option value="">Select produce type</option>
-                {categories.map((category) => (
+                {selectedFacilitySupportedCategories.map((category) => (
                   <option key={category.id} value={category.id}>
                     {category.name}
                   </option>
@@ -671,7 +738,10 @@ export default function FarmerCreateBookingPage() {
 
               {selectedRoom && (
                 <div className="mt-6 rounded-xl border border-[#47A369]/20 bg-[#47A369]/5 p-4 text-sm text-slate-700">
-                  Selected room: {selectedRoom.name} ({selectedRoom.code}) with {selectedRoom.availableCapacity} available capacity at {selectedRoom.pricePerUnit} per unit.
+                  Selected room: {selectedRoom.name} ({selectedRoom.code}) with {selectedRoom.availableCapacity} available capacity at {selectedRoom.pricePerUnit} per unit. Supported produce types:{" "}
+                  {selectedRoom.supportedCategories?.length
+                    ? selectedRoom.supportedCategories.map((category) => category.name).join(", ")
+                    : "none assigned"}
                 </div>
               )}
             </section>

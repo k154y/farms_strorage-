@@ -16,6 +16,14 @@ export default function ColdRoomCard({ room }) {
         <p>Pricing: {room.pricingType}</p>
         <p>Price: {room.pricePerUnit}</p>
       </div>
+      <div className="mt-4 text-sm text-slate-600">
+        <p className="font-medium text-slate-700">Supported produce types</p>
+        <p className="mt-1">
+          {room.supportedCategories?.length
+            ? room.supportedCategories.map((category) => category.name).join(", ")
+            : "No produce types assigned yet"}
+        </p>
+      </div>
     </div>
   );
 }

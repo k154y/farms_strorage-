@@ -12,6 +12,7 @@ import com.agristorage.entity.user.User;
 import com.agristorage.enums.ListingStatus;
 import com.agristorage.enums.Role;
 import com.agristorage.repository.booking.BookingRepository;
+import com.agristorage.repository.marketplace.OrderRequestRepository;
 import com.agristorage.repository.marketplace.ProductImageRepository;
 import com.agristorage.repository.marketplace.ProductListingRepository;
 import com.agristorage.repository.storage.ProduceCategoryRepository;
@@ -31,6 +32,7 @@ public class ProductListingService {
 
     private final ProductListingRepository productListingRepository;
     private final ProductImageRepository productImageRepository;
+    private final OrderRequestRepository orderRequestRepository;
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
     private final ProduceCategoryRepository produceCategoryRepository;
@@ -111,6 +113,8 @@ public class ProductListingService {
 
     public void deleteListing(Long id) {
         ProductListing listing = getListingById(id);
+        productImageRepository.deleteByProductListingId(listing.getId());
+        orderRequestRepository.deleteByProductListingId(listing.getId());
         productListingRepository.delete(listing);
     }
 

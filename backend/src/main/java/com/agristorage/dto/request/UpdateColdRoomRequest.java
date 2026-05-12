@@ -7,6 +7,8 @@ import jakarta.validation.constraints.Positive;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 public class UpdateColdRoomRequest {
@@ -36,4 +38,6 @@ public class UpdateColdRoomRequest {
     private Double pricePerUnit;
 
     private Boolean active;
+
+    private List<Long> supportedCategoryIds;
 }

@@ -5,6 +5,7 @@ export const getFacilityById = async (id) => (await api.get(`/api/storage/facili
 export const createFacility = async (payload) => (await api.post("/api/storage/facilities", payload)).data;
 export const getColdRooms = async () => (await api.get("/api/storage/cold-rooms")).data;
 export const getProduceCategories = async () => (await api.get("/api/storage/categories")).data;
+export const createProduceCategory = async (payload) => (await api.post("/api/storage/categories", payload)).data;
 export const createColdRoom = async (payload) => (await api.post("/api/storage/cold-rooms", payload)).data;
 
 export const uploadFacilityPhoto = async ({ facilityId, file }) => {

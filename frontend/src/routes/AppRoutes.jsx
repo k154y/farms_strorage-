@@ -9,6 +9,10 @@ import MarketplacePage from "../pages/marketplace/MarketplacePage";
 import ProductDetailsPage from "../pages/marketplace/ProductDetailsPage";
 import LoginPage from "../pages/auth/LoginPage";
 import RegisterPage from "../pages/auth/RegisterPage";
+import VerifyEmailPage from "../pages/auth/VerifyEmailPage";
+import ForgotPasswordPage from "../pages/auth/ForgotPasswordPage";
+import ResetPasswordPage from "../pages/auth/ResetPasswordPage";
+import ResendVerificationPage from "../pages/auth/ResendVerificationPage";
 import RegisterStoragePage from "../pages/storage/RegisterStoragePage";
 import BookStoragePage from "../pages/booking/BookStoragePage";
 
@@ -18,6 +22,7 @@ import BookingDetailPage from "../pages/farmer/BookingDetailPage";
 import FarmerCreateBookingPage from "../pages/farmer/FarmerCreateBookingPage";
 import MyListingsPage from "../pages/farmer/MyListingsPage";
 import CreateListingPage from "../pages/farmer/CreateListingPage";
+import EditListingPage from "../pages/farmer/EditListingPage";
 import OrdersReceivedPage from "../pages/farmer/OrdersReceivedPage";
 import FarmerNotificationsPage from "../pages/farmer/FarmerNotificationsPage";
 import FarmerProfilePage from "../pages/farmer/FarmerProfilePage";
@@ -55,6 +60,10 @@ export default function AppRoutes() {
         <Route path="/how-it-works" element={<HowItWorksPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/resend-verification" element={<ResendVerificationPage />} />
         <Route path="/register-storage" element={<RegisterStoragePage />} />
         <Route path="/find-storage" element={<BookStoragePage />} />
       </Route>
@@ -69,6 +78,7 @@ export default function AppRoutes() {
             <Route path="/farmer/bookings/:id" element={<BookingDetailPage />} />
             <Route path="/farmer/listings" element={<MyListingsPage />} />
             <Route path="/farmer/listings/create" element={<CreateListingPage />} />
+            <Route path="/farmer/listings/:id/edit" element={<EditListingPage />} />
             <Route path="/farmer/orders" element={<OrdersReceivedPage />} />
             <Route path="/farmer/notifications" element={<FarmerNotificationsPage />} />
             <Route path="/farmer/profile" element={<FarmerProfilePage />} />
