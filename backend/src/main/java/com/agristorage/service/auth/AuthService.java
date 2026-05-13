@@ -573,7 +573,8 @@ public class AuthService {
         try {
             authMailService.sendEmailVerification(user, token.getToken());
         } catch (Exception ex) {
-            throw new BadRequestException("Your account was created, but the confirmation email could not be sent. Check mail settings and try again.");
+             ex.printStackTrace();
+                throw new BadRequestException(ex.getMessage());
         }
     }
 
