@@ -1,12 +1,16 @@
 # Stage 1: Build the application
-FROM maven:3.8.4-openjdk-17-slim AS build
+# We use Maven with the Temurin JDK 17
+FROM maven:3.9.6-eclipse-temurin-17 AS build
 COPY . /app
 WORKDIR /app
 RUN mvn clean package -DskipTests
 
 # Stage 2: Run the application
-FROM openjdk:17-jdk-slim
+# We use the smaller JRE (Runtime) image for the final container
+FROM eclipse-temurin:17-jre
+WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
-# Render provides the port via an environment variable
+
+# Render needs the app to listen on the $PORT environment variable
 EXPOSE 8080 
-ENTRYPOINT ["java", "-jar", "/app.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
