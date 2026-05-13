@@ -21,7 +21,7 @@ public class AuthMailService {
     private String frontendUrl;
 
     public void sendEmailVerification(User user, String token) {
-        String verificationUrl = frontendUrl + "/verify-email?token=" + token;
+        String verificationUrl = normalizedFrontendUrl() + "/verify-email?token=" + token;
         send(
                 user.getEmail(),
                 "Confirm your ColdChain account",
@@ -33,7 +33,7 @@ public class AuthMailService {
     }
 
     public void sendPasswordReset(User user, String token) {
-        String resetUrl = frontendUrl + "/reset-password?token=" + token;
+        String resetUrl = normalizedFrontendUrl() + "/reset-password?token=" + token;
         send(
                 user.getEmail(),
                 "Reset your ColdChain password",
@@ -58,5 +58,13 @@ public class AuthMailService {
         message.setSubject(subject);
         message.setText(text);
         mailSender.send(message);
+    }
+
+    private String normalizedFrontendUrl() {
+        if (frontendUrl == null || frontendUrl.isBlank()) {
+            return "http://localhost:5173";
+        }
+
+        return frontendUrl.endsWith("/") ? frontendUrl.substring(0, frontendUrl.length() - 1) : frontendUrl;
     }
 }

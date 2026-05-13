@@ -42,7 +42,6 @@ import com.agristorage.service.common.AuditLogService;
 import com.agristorage.service.user.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.MailException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -573,7 +572,7 @@ public class AuthService {
 
         try {
             authMailService.sendEmailVerification(user, token.getToken());
-        } catch (MailException ex) {
+        } catch (Exception ex) {
             throw new BadRequestException("Your account was created, but the confirmation email could not be sent. Check mail settings and try again.");
         }
     }
@@ -581,7 +580,7 @@ public class AuthService {
     private void sendPasswordResetEmail(User user, String token) {
         try {
             authMailService.sendPasswordReset(user, token);
-        } catch (MailException ex) {
+        } catch (Exception ex) {
             throw new BadRequestException("The password reset email could not be sent right now.");
         }
     }
