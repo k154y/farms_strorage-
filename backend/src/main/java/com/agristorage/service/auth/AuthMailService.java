@@ -17,7 +17,7 @@ public class AuthMailService {
     @Value("${app.mail.from:}")
     private String fromAddress;
 
-    @Value("${app.frontend-url:http://localhost:5173}")
+    @Value("${app.frontend-url:https://farms-strorage.vercel.app}")
     private String frontendUrl;
 
     public void sendEmailVerification(User user, String token) {
@@ -62,7 +62,7 @@ public class AuthMailService {
 
     private String normalizedFrontendUrl() {
         if (frontendUrl == null || frontendUrl.isBlank()) {
-            return "http://localhost:5173";
+            return "https://farms-strorage.vercel.app";
         }
 
         return frontendUrl.endsWith("/") ? frontendUrl.substring(0, frontendUrl.length() - 1) : frontendUrl;
